@@ -1,4 +1,3 @@
-
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 const ContestPage = () => {
-  const [appliedJobs, setAppliedJobs] = useState<number[]>([]);
+  const [appliedJobs, setAppliedJobs] = useState<number[]>(() => {
+    const saved = localStorage.getItem('jobApplications');
+    return saved ? JSON.parse(saved).map((app: any) => app.id) : [];
+  });
 
   const jobCards = Array(40).fill(null).map((_, index) => ({
     id: index + 1,
@@ -38,8 +40,23 @@ const ContestPage = () => {
       return;
     }
     
-    setAppliedJobs([...appliedJobs, jobId]);
-    toast.success("Application submitted successfully!");
+    const job = jobCards.find(j => j.id === jobId);
+    if (job) {
+      const application = {
+        id: jobId,
+        jobTitle: job.title,
+        company: job.company,
+        appliedDate: new Date(),
+      };
+      
+      const savedApps = localStorage.getItem('jobApplications');
+      const applications = savedApps ? JSON.parse(savedApps) : [];
+      applications.push(application);
+      localStorage.setItem('jobApplications', JSON.stringify(applications));
+      
+      setAppliedJobs([...appliedJobs, jobId]);
+      toast.success("Application submitted successfully!");
+    }
   };
 
   const handleViewDetails = (job: any) => {

@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -116,7 +115,7 @@
   }
   
   .hover-3d {
-    @apply transition-all duration-300 hover:shadow-xl hover:translate-y-[-5px] hover:scale-[1.02] hover:rotate-1;
+    @apply transition-all duration-300 hover:shadow-md hover:translate-y-[-2px] hover:scale-[1.01];
   }
 
   .text-gradient {
@@ -143,4 +142,3 @@
   0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
   50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
 }
-
