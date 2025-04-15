@@ -12,6 +12,7 @@ const F2FInterview = () => {
   const [micEnabled, setMicEnabled] = useState(false);
   const [streamActive, setStreamActive] = useState(false);
   const [interviewStarted, setInterviewStarted] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const navigate = useNavigate();
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -19,11 +20,16 @@ const F2FInterview = () => {
   useEffect(() => {
     // Clean up media stream on component unmount
     return () => {
-      if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach(track => track.stop());
-      }
+      stopAllTracks();
     };
   }, []);
+
+  const stopAllTracks = () => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      mediaStreamRef.current = null;
+    }
+  };
 
   const toggleCamera = async () => {
     try {
@@ -39,23 +45,43 @@ const F2FInterview = () => {
         toast.info("Camera turned off");
       } else {
         // Turn on camera
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: true,
-          audio: micEnabled 
-        });
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-        
-        mediaStreamRef.current = stream;
-        setCameraEnabled(true);
-        setStreamActive(true);
+        await startCamera();
         toast.success("Camera access granted");
       }
     } catch (error) {
       console.error("Error accessing camera:", error);
+      setCameraError("Failed to access camera. Please ensure camera permissions are enabled.");
       toast.error("Failed to access camera. Please ensure camera permissions are enabled.");
+    }
+  };
+
+  const startCamera = async () => {
+    try {
+      stopAllTracks(); // Stop any existing tracks first
+
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true,
+        audio: micEnabled 
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        // Ensure the video starts playing
+        videoRef.current.play().catch(err => {
+          console.error("Error playing video:", err);
+          toast.error("Error starting video playback");
+        });
+      }
+      
+      mediaStreamRef.current = stream;
+      setCameraEnabled(true);
+      setStreamActive(true);
+      setCameraError(null);
+      return stream;
+    } catch (error) {
+      console.error("Error in startCamera:", error);
+      setCameraError("Camera access denied or not available");
+      throw error;
     }
   };
 
@@ -102,21 +128,26 @@ const F2FInterview = () => {
     }
   };
 
-  const startInterview = () => {
+  const startInterview = async () => {
     if (!streamActive) {
-      toast.error("Please enable camera or microphone before starting the interview");
-      return;
+      try {
+        // If stream is not active, try to start camera first
+        await startCamera();
+        setInterviewStarted(true);
+        toast.success("F2F Interview session started");
+      } catch (error) {
+        console.error("Failed to start camera for interview:", error);
+        toast.error("Please enable camera or microphone before starting the interview");
+      }
+    } else {
+      setInterviewStarted(true);
+      toast.success("F2F Interview session started");
     }
-    
-    setInterviewStarted(true);
-    toast.success("F2F Interview session started");
   };
 
   const endInterview = () => {
     // Stop all tracks
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop());
-    }
+    stopAllTracks();
     
     // Reset state
     setCameraEnabled(false);
@@ -171,11 +202,15 @@ const F2FInterview = () => {
                       >
                         Enable Camera Access
                       </Button>
+                      {cameraError && (
+                        <p className="mt-2 text-red-400 text-sm">{cameraError}</p>
+                      )}
                     </div>
                   ) : (
                     <video 
                       ref={videoRef} 
                       autoPlay 
+                      playsInline
                       muted 
                       className="w-full h-full object-cover"
                     />
@@ -214,7 +249,6 @@ const F2FInterview = () => {
                     <Button 
                       className="h-12 px-6 bg-green-500 hover:bg-green-600 text-white"
                       onClick={startInterview}
-                      disabled={!streamActive}
                     >
                       Start Interview
                     </Button>
