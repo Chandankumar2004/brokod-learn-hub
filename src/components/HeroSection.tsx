@@ -5,6 +5,10 @@ import { MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 
 export function HeroSection() {
+  const openBroKodChat = () => {
+    window.open('https://chat.openai.com', '_blank');
+  };
+
   return (
     <section className="py-12 md:py-24">
       <div className="container px-4 md:px-6">
@@ -20,7 +24,10 @@ export function HeroSection() {
               <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6">
                 Your personal coding coach, mentor, and friend. BroKod is here to help you navigate your coding journey with confidence and support.
               </p>
-              <Button className="kodnest-button-yellow group flex items-center gap-2 text-base animate-pulse-glow hover:scale-110 transition-transform duration-300">
+              <Button 
+                className="kodnest-button-yellow group flex items-center gap-2 text-base animate-pulse-glow hover:scale-110 transition-transform duration-300"
+                onClick={openBroKodChat}
+              >
                 <MessageSquare className="h-5 w-5 group-hover:animate-bounce" />
                 Chat with BroKod
               </Button>

@@ -10,6 +10,7 @@ import Courses from "./pages/Courses";
 import PracticePage from "./pages/Practice";
 import ContestPage from "./pages/Contest";
 import ProfilePage from "./pages/Profile";
+import F2FInterview from "./pages/F2FInterview";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/contest" element={<ContestPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/f2f-interview" element={<F2FInterview />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

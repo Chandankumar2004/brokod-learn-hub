@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
 import { ChatWidget } from "./ChatWidget";
-import { Menu, UserPlus, X, Copy, Share2 } from "lucide-react";
+import { Menu, UserPlus, X, Copy, Share2, Video } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -35,6 +35,14 @@ export function Navbar() {
     } else {
       toast.info("Sharing not supported by your browser. Copy the code instead.");
     }
+  };
+
+  const openMentorConnect = () => {
+    window.open('https://zoom.us/join', '_blank');
+  };
+
+  const openBroKodChat = () => {
+    window.open('https://chat.openai.com', '_blank');
   };
 
   return (
@@ -71,6 +79,13 @@ export function Navbar() {
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:scale-105 transition-transform duration-200"
             >
               Contest
+            </a>
+            <a 
+              href="/f2f-interview" 
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:scale-105 transition-transform duration-200 flex items-center gap-1"
+            >
+              <Video className="h-3.5 w-3.5" />
+              F2F Interview
             </a>
           </nav>
         </div>
@@ -113,13 +128,15 @@ export function Navbar() {
           <Button 
             variant="outline" 
             className="flex items-center gap-2 hover:scale-105 transition-transform duration-200"
-            onClick={() => navigate('/profile')}
+            onClick={openMentorConnect}
           >
             <UserPlus className="h-4 w-4" />
             <span>Mentor Connect</span>
           </Button>
           <ThemeToggle />
-          <ChatWidget />
+          <div onClick={openBroKodChat}>
+            <ChatWidget />
+          </div>
         </div>
         
         <Button 
@@ -172,19 +189,32 @@ export function Navbar() {
               >
                 Contest
               </a>
+              <a 
+                href="/f2f-interview" 
+                className="text-lg font-medium text-muted-foreground transition-colors hover:text-foreground flex items-center gap-2"
+              >
+                <Video className="h-4 w-4" />
+                F2F Interview
+              </a>
             </nav>
             
             <div className="flex flex-col gap-4">
               <Button className="bg-kodnest-purple hover:bg-kodnest-light-purple w-full">
                 Help and Earn
               </Button>
-              <Button variant="outline" className="flex items-center justify-center gap-2 w-full">
+              <Button 
+                variant="outline" 
+                className="flex items-center justify-center gap-2 w-full"
+                onClick={openMentorConnect}
+              >
                 <UserPlus className="h-4 w-4" />
                 <span>Mentor Connect</span>
               </Button>
               <div className="flex justify-between mt-4">
                 <ThemeToggle />
-                <ChatWidget />
+                <div onClick={openBroKodChat}>
+                  <ChatWidget />
+                </div>
               </div>
             </div>
           </div>
