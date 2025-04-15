@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -52,6 +53,14 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				kodnest: {
+					purple: '#8B5CF6',
+					"light-purple": '#A78BFA',
+					yellow: '#FBBF24',
+					"light-yellow": '#FCD34D',
+					"dark-blue": '#1E293B',
+					"light-blue": '#3B82F6'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -84,11 +93,26 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' }
+				},
+				'pulse-glow': {
+					'0%, 100%': { boxShadow: '0 0 10px 0 rgba(139, 92, 246, 0.3)' },
+					'50%': { boxShadow: '0 0 20px 0 rgba(139, 92, 246, 0.6)' }
+				},
+				'blob': {
+					'0%, 100%': { borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' },
+					'50%': { borderRadius: '30% 60% 70% 40% / 50% 60% 30% 60%' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'float': 'float 6s ease-in-out infinite',
+				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+				'blob': 'blob 8s ease-in-out infinite'
 			}
 		}
 	},
