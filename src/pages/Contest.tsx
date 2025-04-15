@@ -3,9 +3,14 @@ import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Building, ExternalLink } from "lucide-react";
+import { Calendar, Clock, Building, ExternalLink, BriefcaseBusiness, MapPin } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const ContestPage = () => {
+  const [appliedJobs, setAppliedJobs] = useState<number[]>([]);
+
   const jobCards = Array(40).fill(null).map((_, index) => ({
     id: index + 1,
     title: `${["Frontend", "Backend", "Fullstack", "Mobile", "DevOps"][index % 5]} Developer`,
@@ -14,6 +19,7 @@ const ContestPage = () => {
     postedDate: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000),
     salary: `$${80 + Math.floor(Math.random() * 70)}k - $${120 + Math.floor(Math.random() * 50)}k`,
     skills: ["React", "TypeScript", "Node.js", "Python", "Java", "AWS"].slice(0, 3 + (index % 3)),
+    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam viverra, magna eu aliquam tincidunt, nunc elit aliquam massa, vel lacinia libero leo vitae nunc."
   }));
 
   const formatDate = (date: Date) => {
@@ -26,14 +32,36 @@ const ContestPage = () => {
     return date.toLocaleDateString();
   };
 
+  const handleApply = (jobId: number) => {
+    if (appliedJobs.includes(jobId)) {
+      toast.info("You've already applied to this job");
+      return;
+    }
+    
+    setAppliedJobs([...appliedJobs, jobId]);
+    toast.success("Application submitted successfully!");
+  };
+
+  const handleViewDetails = (job: any) => {
+    // In a real app, this would show a modal or navigate to a details page
+    toast(`${job.title} at ${job.company}`, {
+      description: `${job.description}\n\nSkills: ${job.skills.join(", ")}\nLocation: ${job.location}`,
+      duration: 5000,
+    });
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
       <main className="flex-1 container py-12 px-4">
-        <h1 className="text-3xl font-bold mb-2">Job Opportunities</h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-8">
-          Browse the latest job postings from top tech companies
-        </p>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-kodnest-purple to-kodnest-light-blue bg-clip-text text-transparent">
+            Job Opportunities
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 max-w-3xl">
+            Browse the latest job postings from top tech companies. Find your dream role and apply directly through our platform.
+          </p>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobCards.map((job) => (
@@ -80,17 +108,19 @@ const ContestPage = () => {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="flex-1 flex items-center gap-1"
+                  className="flex-1 flex items-center gap-1 hover:scale-105 transition-transform duration-200"
+                  onClick={() => handleViewDetails(job)}
                 >
                   <ExternalLink className="h-4 w-4" />
                   See Details
                 </Button>
                 <Button 
-                  variant="default" 
+                  variant={appliedJobs.includes(job.id) ? "outline" : "default"}
                   size="sm" 
-                  className="flex-1 bg-kodnest-purple hover:bg-kodnest-light-purple"
+                  className={`flex-1 hover:scale-105 transition-transform duration-200 ${!appliedJobs.includes(job.id) ? "bg-kodnest-purple hover:bg-kodnest-light-purple" : ""}`}
+                  onClick={() => handleApply(job.id)}
                 >
-                  Apply
+                  {appliedJobs.includes(job.id) ? "Applied" : "Apply"}
                 </Button>
               </CardFooter>
             </Card>

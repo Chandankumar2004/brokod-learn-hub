@@ -3,17 +3,48 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
 import { ChatWidget } from "./ChatWidget";
-import { Menu, UserPlus, X } from "lucide-react";
+import { Menu, UserPlus, X, Copy, Share2 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const referralCode = "KODNEST25"; // Example referral code
+  const navigate = useNavigate();
+
+  const copyReferralCode = () => {
+    navigator.clipboard.writeText(referralCode)
+      .then(() => toast.success("Referral code copied to clipboard!"))
+      .catch(err => toast.error("Failed to copy code. Please try again."));
+  };
+
+  const shareReferral = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Join KodNest Learning Platform',
+        text: `Use my referral code ${referralCode} to get a discount on KodNest courses!`,
+        url: window.location.href,
+      })
+      .then(() => toast.success("Shared successfully!"))
+      .catch(err => console.error('Error sharing:', err));
+    } else {
+      toast.info("Sharing not supported by your browser. Copy the code instead.");
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <a href="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-kodnest-purple">KodNest</span>
+            <span className="text-2xl font-bold bg-gradient-to-r from-kodnest-purple to-kodnest-light-purple bg-clip-text text-transparent">
+              KodNest
+            </span>
           </a>
           
           <nav className="hidden md:flex items-center gap-6 ml-6">
@@ -25,19 +56,19 @@ export function Navbar() {
             </a>
             <a 
               href="/courses" 
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:scale-105 transition-transform duration-200"
             >
               Courses
             </a>
             <a 
               href="/practice" 
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:scale-105 transition-transform duration-200"
             >
               Practice
             </a>
             <a 
               href="/contest" 
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:scale-105 transition-transform duration-200"
             >
               Contest
             </a>
@@ -45,10 +76,45 @@ export function Navbar() {
         </div>
         
         <div className="hidden md:flex items-center gap-4">
-          <Button className="bg-kodnest-purple hover:bg-kodnest-light-purple">
-            Help and Earn
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button className="bg-kodnest-purple hover:bg-kodnest-light-purple hover:scale-105 transition-transform duration-200">
+                Help and Earn
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72">
+              <div className="space-y-4">
+                <h3 className="font-medium text-lg">Share & Earn Rewards</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Share your referral code with friends and earn rewards when they join KodNest!
+                </p>
+                <div className="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                  <span className="font-mono text-kodnest-purple">{referralCode}</span>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={copyReferralCode} className="h-8 w-8">
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={shareReferral} className="h-8 w-8">
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-center">
+                  <img 
+                    src="https://api.dicebear.com/7.x/bottts/svg?seed=kodassistant&background=%238B5CF6"
+                    alt="AI Assistant" 
+                    className="w-20 h-20 rounded-full"
+                  />
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2 hover:scale-105 transition-transform duration-200"
+            onClick={() => navigate('/profile')}
+          >
             <UserPlus className="h-4 w-4" />
             <span>Mentor Connect</span>
           </Button>

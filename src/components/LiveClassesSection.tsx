@@ -64,16 +64,18 @@ export function LiveClassesSection() {
   ];
 
   return (
-    <section className="py-12">
+    <section className="py-12 bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-gray-900/50 dark:to-gray-800/50">
       <div className="container px-4 md:px-6">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold">Live Classes</h2>
+          <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-kodnest-purple to-kodnest-light-blue bg-clip-text text-transparent">
+            Live Classes
+          </h2>
           <div className="flex gap-2">
             <Button 
               variant="outline" 
               size="icon" 
               onClick={scrollLeft} 
-              className="rounded-full"
+              className="rounded-full hover:scale-110 transition-transform duration-200"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
@@ -81,7 +83,7 @@ export function LiveClassesSection() {
               variant="outline" 
               size="icon" 
               onClick={scrollRight} 
-              className="rounded-full"
+              className="rounded-full hover:scale-110 transition-transform duration-200"
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
