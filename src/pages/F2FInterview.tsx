@@ -1,9 +1,8 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, CameraOff, Mic, MicOff, X, Users, MessageSquare } from "lucide-react";
+import { Camera, CameraOff, Mic, MicOff, X, Users, MessageSquare, VideoIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -16,9 +15,11 @@ const F2FInterview = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const navigate = useNavigate();
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
-    // Clean up media stream on component unmount
     return () => {
       stopAllTracks();
     };
@@ -34,7 +35,6 @@ const F2FInterview = () => {
   const toggleCamera = async () => {
     try {
       if (cameraEnabled) {
-        // Turn off camera
         if (mediaStreamRef.current) {
           mediaStreamRef.current.getVideoTracks().forEach(track => track.stop());
         }
@@ -44,7 +44,6 @@ const F2FInterview = () => {
         }
         toast.info("Camera turned off");
       } else {
-        // Turn on camera
         await startCamera();
         toast.success("Camera access granted");
       }
@@ -57,7 +56,7 @@ const F2FInterview = () => {
 
   const startCamera = async () => {
     try {
-      stopAllTracks(); // Stop any existing tracks first
+      stopAllTracks();
 
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: true,
@@ -66,7 +65,6 @@ const F2FInterview = () => {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        // Ensure the video starts playing
         videoRef.current.play().catch(err => {
           console.error("Error playing video:", err);
           toast.error("Error starting video playback");
@@ -88,7 +86,6 @@ const F2FInterview = () => {
   const toggleMic = async () => {
     try {
       if (micEnabled) {
-        // Turn off mic
         if (mediaStreamRef.current) {
           mediaStreamRef.current.getAudioTracks().forEach(track => track.stop());
         }
@@ -98,16 +95,13 @@ const F2FInterview = () => {
         }
         toast.info("Microphone turned off");
       } else {
-        // Turn on mic
         let stream;
         
         if (mediaStreamRef.current && cameraEnabled) {
-          // If camera is already on, add audio track
           stream = await navigator.mediaDevices.getUserMedia({ audio: true });
           const audioTrack = stream.getAudioTracks()[0];
           mediaStreamRef.current.addTrack(audioTrack);
         } else {
-          // Start new stream with just audio
           stream = await navigator.mediaDevices.getUserMedia({ 
             audio: true,
             video: cameraEnabled 
@@ -131,7 +125,6 @@ const F2FInterview = () => {
   const startInterview = async () => {
     if (!streamActive) {
       try {
-        // If stream is not active, try to start camera first
         await startCamera();
         setInterviewStarted(true);
         toast.success("F2F Interview session started");
@@ -146,10 +139,8 @@ const F2FInterview = () => {
   };
 
   const endInterview = () => {
-    // Stop all tracks
     stopAllTracks();
     
-    // Reset state
     setCameraEnabled(false);
     setMicEnabled(false);
     setStreamActive(false);
@@ -161,6 +152,44 @@ const F2FInterview = () => {
   const exitInterview = () => {
     endInterview();
     navigate('/');
+  };
+
+  const toggleRecording = () => {
+    if (!streamActive) {
+      toast.error("Please enable camera or microphone before recording");
+      return;
+    }
+
+    if (!isRecording) {
+      if (mediaStreamRef.current) {
+        const mediaRecorder = new MediaRecorder(mediaStreamRef.current);
+        
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            recordedChunksRef.current.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          const recordedBlob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+          const url = URL.createObjectURL(recordedBlob);
+          
+          toast.success("Recording stopped");
+          recordedChunksRef.current = [];
+        };
+
+        mediaRecorder.start();
+        mediaRecorderRef.current = mediaRecorder;
+        setIsRecording(true);
+        toast.success("Recording started");
+      }
+    } else {
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+        setIsRecording(false);
+        toast.info("Recording ended");
+      }
+    }
   };
 
   return (
@@ -261,6 +290,16 @@ const F2FInterview = () => {
                       End Interview
                     </Button>
                   )}
+                  
+                  <Button 
+                    variant={isRecording ? "destructive" : "default"}
+                    size="icon" 
+                    className={`h-12 w-12 rounded-full ${isRecording ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-green-500 text-white hover:bg-green-600'}`}
+                    onClick={toggleRecording}
+                  >
+                    <VideoIcon className="h-6 w-6" />
+                    {isRecording && <span className="absolute w-2 h-2 bg-white rounded-full top-1 right-1 animate-pulse"></span>}
+                  </Button>
                 </div>
               </div>
               
