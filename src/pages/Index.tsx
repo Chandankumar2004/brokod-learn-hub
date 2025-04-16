@@ -1,23 +1,13 @@
-
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { LiveClassesSection } from "@/components/LiveClassesSection";
+import { HelpAndEarnSection } from "@/components/HelpAndEarnSection";
 import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
-import { toast } from "sonner";
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Copy, Link, Share } from "lucide-react";
-import { Card } from "@/components/ui/card";
 
 const Index = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [cameraAccess, setCameraAccess] = useState(false);
-  const referralCode = "KODNEST25"; // Example referral code
 
   // Handle initial page load animation
   useEffect(() => {
@@ -49,26 +39,6 @@ const Index = () => {
       });
   };
 
-  const copyReferralCode = () => {
-    navigator.clipboard.writeText(referralCode)
-      .then(() => toast.success("Referral code copied to clipboard!"))
-      .catch(err => toast.error("Failed to copy code. Please try again."));
-  };
-
-  const shareReferral = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'Join KodNest Learning Platform',
-        text: `Use my referral code ${referralCode} to get a discount on KodNest courses!`,
-        url: window.location.href,
-      })
-      .then(() => toast.success("Shared successfully!"))
-      .catch(err => console.error('Error sharing:', err));
-    } else {
-      toast.info("Sharing not supported by your browser. Copy the code instead.");
-    }
-  };
-
   return (
     <div className={`min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-opacity duration-500 ${isMounted ? 'opacity-100' : 'opacity-0'}`}>
       <Toaster position="top-right" />
@@ -77,6 +47,7 @@ const Index = () => {
       <main className="flex-1">
         <HeroSection />
         <LiveClassesSection />
+        <HelpAndEarnSection />
         
         {/* F2F Access Section with Enhanced Design */}
         <div className="container px-4 md:px-6 py-8">
