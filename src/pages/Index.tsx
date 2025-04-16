@@ -1,9 +1,13 @@
+
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { LiveClassesSection } from "@/components/LiveClassesSection";
 import { HelpAndEarnSection } from "@/components/HelpAndEarnSection";
 import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [isMounted, setIsMounted] = useState(false);
