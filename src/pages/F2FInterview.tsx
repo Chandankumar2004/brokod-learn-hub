@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, CameraOff, Mic, MicOff, X, Users, MessageSquare, VideoIcon } from "lucide-react";
+import { Camera, CameraOff, Mic, MicOff, X, Users, MessageSquare, VideoIcon, Pause, Play } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -18,9 +18,13 @@ const F2FInterview = () => {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const timerIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
+      stopTimer();
       stopAllTracks();
     };
   }, []);
@@ -154,6 +158,25 @@ const F2FInterview = () => {
     navigate('/');
   };
 
+  const startTimer = () => {
+    timerIntervalRef.current = window.setInterval(() => {
+      setRecordingTime((prev) => prev + 1);
+    }, 1000);
+  };
+
+  const stopTimer = () => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
   const toggleRecording = () => {
     if (!streamActive) {
       toast.error("Please enable camera or microphone before recording");
@@ -176,19 +199,40 @@ const F2FInterview = () => {
           
           toast.success("Recording stopped");
           recordedChunksRef.current = [];
+          setRecordingTime(0);
+          stopTimer();
         };
 
         mediaRecorder.start();
         mediaRecorderRef.current = mediaRecorder;
         setIsRecording(true);
+        setIsPaused(false);
+        startTimer();
         toast.success("Recording started");
       }
     } else {
       if (mediaRecorderRef.current) {
         mediaRecorderRef.current.stop();
         setIsRecording(false);
+        setIsPaused(false);
         toast.info("Recording ended");
       }
+    }
+  };
+
+  const togglePause = () => {
+    if (!isRecording || !mediaRecorderRef.current) return;
+
+    if (isPaused) {
+      mediaRecorderRef.current.resume();
+      setIsPaused(false);
+      startTimer();
+      toast.success("Recording resumed");
+    } else {
+      mediaRecorderRef.current.pause();
+      setIsPaused(true);
+      stopTimer();
+      toast.info("Recording paused");
     }
   };
 
@@ -282,24 +326,47 @@ const F2FInterview = () => {
                       Start Interview
                     </Button>
                   ) : (
-                    <Button 
-                      variant="destructive" 
-                      className="h-12 px-6"
-                      onClick={endInterview}
-                    >
-                      End Interview
-                    </Button>
+                    <>
+                      <Button 
+                        variant="destructive" 
+                        className="h-12 px-6"
+                        onClick={endInterview}
+                      >
+                        End Interview
+                      </Button>
+                      
+                      <Button 
+                        variant={isRecording ? "destructive" : "default"}
+                        size="icon" 
+                        className={`h-12 w-12 rounded-full relative ${
+                          isRecording ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-green-500 text-white hover:bg-green-600'
+                        }`}
+                        onClick={toggleRecording}
+                      >
+                        <VideoIcon className="h-6 w-6" />
+                        {isRecording && (
+                          <span className="absolute -top-1 -right-1 bg-white text-xs px-2 py-1 rounded-full text-gray-800 font-medium">
+                            {formatTime(recordingTime)}
+                          </span>
+                        )}
+                      </Button>
+
+                      {isRecording && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-12 w-12 rounded-full"
+                          onClick={togglePause}
+                        >
+                          {isPaused ? (
+                            <Play className="h-6 w-6" />
+                          ) : (
+                            <Pause className="h-6 w-6" />
+                          )}
+                        </Button>
+                      )}
+                    </>
                   )}
-                  
-                  <Button 
-                    variant={isRecording ? "destructive" : "default"}
-                    size="icon" 
-                    className={`h-12 w-12 rounded-full ${isRecording ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-green-500 text-white hover:bg-green-600'}`}
-                    onClick={toggleRecording}
-                  >
-                    <VideoIcon className="h-6 w-6" />
-                    {isRecording && <span className="absolute w-2 h-2 bg-white rounded-full top-1 right-1 animate-pulse"></span>}
-                  </Button>
                 </div>
               </div>
               
