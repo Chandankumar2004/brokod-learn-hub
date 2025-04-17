@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Camera, CameraOff, Mic, MicOff, VideoIcon, Pause, Play } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { VideoControls } from "./controls/VideoControls";
+import { RecordingControls } from "./controls/RecordingControls";
+import { VideoPreview } from "./preview/VideoPreview";
+import { TranscriptionSection } from "./transcription/TranscriptionSection";
 
 interface VideoSectionProps {
   transcribedText: string;
@@ -41,6 +42,19 @@ export const VideoSection = ({
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
       mediaStreamRef.current = null;
+    }
+  };
+
+  const startTimer = () => {
+    timerIntervalRef.current = window.setInterval(() => {
+      setRecordingTime((prev) => prev + 1);
+    }, 1000);
+  };
+
+  const stopTimer = () => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
     }
   };
 
@@ -134,25 +148,6 @@ export const VideoSection = ({
     }
   };
 
-  const startTimer = () => {
-    timerIntervalRef.current = window.setInterval(() => {
-      setRecordingTime((prev) => prev + 1);
-    }, 1000);
-  };
-
-  const stopTimer = () => {
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    }
-  };
-
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
   const toggleRecording = () => {
     if (!streamActive) {
       toast.error("Please enable camera or microphone before recording");
@@ -234,108 +229,37 @@ export const VideoSection = ({
 
   return (
     <div className="p-4 flex flex-col h-full">
-      <div className="relative flex-1 bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center mb-4">
-        {!streamActive ? (
-          <div className="text-center p-6">
-            <div className="w-24 h-24 mx-auto mb-4 bg-gray-700 rounded-full flex items-center justify-center">
-              <VideoIcon className="h-12 w-12 text-gray-400" />
-            </div>
-            <p className="text-gray-300 mb-4">Camera and microphone are currently off</p>
-            <Button 
-              className="bg-kodnest-purple hover:bg-kodnest-light-purple"
-              onClick={toggleCamera}
-            >
-              Enable Camera Access
-            </Button>
-            {cameraError && (
-              <p className="mt-2 text-red-400 text-sm">{cameraError}</p>
-            )}
-          </div>
-        ) : (
-          <video 
-            ref={videoRef} 
-            autoPlay 
-            playsInline
-            muted 
-            className="w-full h-full object-cover"
-          />
-        )}
-      </div>
+      <VideoPreview
+        streamActive={streamActive}
+        onCameraStart={startCamera}
+        cameraError={cameraError}
+        videoRef={videoRef}
+      />
       
       <div className="flex justify-center gap-4 p-4">
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className={`h-12 w-12 rounded-full ${cameraEnabled ? 'bg-white text-gray-800' : 'bg-red-500 text-white hover:bg-red-600'}`}
-          onClick={toggleCamera}
-        >
-          {cameraEnabled ? <Camera className="h-6 w-6" /> : <CameraOff className="h-6 w-6" />}
-        </Button>
+        <VideoControls
+          cameraEnabled={cameraEnabled}
+          micEnabled={micEnabled}
+          onCameraToggle={toggleCamera}
+          onMicToggle={toggleMic}
+        />
         
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className={`h-12 w-12 rounded-full ${micEnabled ? 'bg-white text-gray-800' : 'bg-red-500 text-white hover:bg-red-600'}`}
-          onClick={toggleMic}
-        >
-          {micEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
-        </Button>
-
-        <Button 
-          variant={isRecording ? "destructive" : "default"}
-          size="icon" 
-          className={`h-12 w-12 rounded-full relative ${
-            isRecording ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-green-500 text-white hover:bg-green-600'
-          }`}
-          onClick={toggleRecording}
-        >
-          <VideoIcon className="h-6 w-6" />
-          {isRecording && (
-            <span className="absolute -top-1 -right-1 bg-white text-xs px-2 py-1 rounded-full text-gray-800 font-medium">
-              {formatTime(recordingTime)}
-            </span>
-          )}
-        </Button>
-
-        {isRecording && (
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-12 w-12 rounded-full"
-            onClick={togglePause}
-          >
-            {isPaused ? <Play className="h-6 w-6" /> : <Pause className="h-6 w-6" />}
-          </Button>
-        )}
+        <RecordingControls
+          isRecording={isRecording}
+          isPaused={isPaused}
+          recordingTime={recordingTime}
+          streamActive={streamActive}
+          onRecordingToggle={toggleRecording}
+          onPauseToggle={togglePause}
+        />
       </div>
 
-      <div className="mt-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
-        <h3 className="font-medium text-lg mb-2">Your Answer</h3>
-        {isTranscribing ? (
-          <div className="flex items-center justify-center p-6">
-            <div className="inline-block w-8 h-8 border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full animate-spin mr-3"></div>
-            <p>Transcribing your answer...</p>
-          </div>
-        ) : (
-          <>
-            <Textarea 
-              className="w-full min-h-[120px]" 
-              placeholder="Your answer will appear here after recording, or you can type/paste it manually..."
-              value={transcribedText}
-              onChange={(e) => setTranscribedText(e.target.value)}
-            />
-            <div className="flex justify-end mt-2">
-              <Button
-                onClick={onTranscriptSubmit}
-                className="gap-2"
-                disabled={isTranscribing || !transcribedText.trim()}
-              >
-                Submit Answer
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
+      <TranscriptionSection
+        isTranscribing={isTranscribing}
+        transcribedText={transcribedText}
+        onTranscribedTextChange={setTranscribedText}
+        onTranscriptSubmit={onTranscriptSubmit}
+      />
     </div>
   );
 };
