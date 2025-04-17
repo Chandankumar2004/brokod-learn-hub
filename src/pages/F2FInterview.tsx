@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VideoSection } from "@/components/interview/VideoSection";
 import { QuestionsSection } from "@/components/interview/QuestionsSection";
 import { AIAnalysisSection } from "@/components/interview/AIAnalysisSection";
-import { interviewQuestions } from "@/constants/interviewQuestions";
+import { interviewQuestions, adaptiveQuestions } from "@/constants/interviewQuestions";
 
 const F2FInterview = () => {
   const [interviewStarted, setInterviewStarted] = useState(false);
@@ -22,6 +21,7 @@ const F2FInterview = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [grammarAnalysis, setGrammarAnalysis] = useState<string | null>(null);
+  const [isAnswerVisible, setIsAnswerVisible] = useState(true);
 
   const startInterview = () => {
     setInterviewStarted(true);
@@ -31,7 +31,6 @@ const F2FInterview = () => {
   const endInterview = () => {
     setInterviewStarted(false);
     toast.info("Interview session ended");
-    // Reset states when ending interview
     setUserAnswer("");
     setAiAnalysis(null);
     setTranscribedText("");
@@ -43,11 +42,31 @@ const F2FInterview = () => {
     navigate('/');
   };
 
+  const generateNextQuestion = (currentAnswer: string) => {
+    const currentQuestion = interviewQuestions[currentQuestionIndex];
+    const adaptiveFollowUps = (adaptiveQuestions as any)[currentQuestion]?.followUps || [];
+    
+    if (adaptiveFollowUps.length > 0) {
+      const keywords = currentAnswer.toLowerCase().split(' ');
+      const techKeywords = ['react', 'javascript', 'typescript', 'node', 'python'];
+      const mentionedTech = keywords.find(word => techKeywords.includes(word));
+      
+      if (mentionedTech) {
+        return adaptiveFollowUps[0].replace('[technology mentioned]', mentionedTech);
+      }
+    }
+    
+    return interviewQuestions[currentQuestionIndex + 1];
+  };
+
   const nextQuestion = () => {
     if (currentQuestionIndex < interviewQuestions.length - 1) {
+      const nextQuestionText = generateNextQuestion(userAnswer);
       setCurrentQuestionIndex(prev => prev + 1);
       setUserAnswer("");
       setAiAnalysis(null);
+      setIsAnswerVisible(true);
+      toast.info(`Next Question: ${nextQuestionText}`);
     }
   };
 
@@ -56,11 +75,16 @@ const F2FInterview = () => {
       setCurrentQuestionIndex(prev => prev - 1);
       setUserAnswer("");
       setAiAnalysis(null);
+      setIsAnswerVisible(true);
     }
   };
 
   const toggleMinimize = () => {
     setMinimized(!minimized);
+  };
+
+  const toggleAnswer = () => {
+    setIsAnswerVisible(!isAnswerVisible);
   };
 
   const analyzeAnswer = () => {
@@ -71,32 +95,17 @@ const F2FInterview = () => {
 
     setIsAnalyzing(true);
     
-    // Simulating AI analysis (in a real app, this would call an API)
     setTimeout(() => {
-      const feedbacks = [
-        "Good start! Try to be more specific about your achievements and skills. Use the STAR method (Situation, Task, Action, Result) to structure your responses.",
-        "Strong answer! You've demonstrated clear communication and relevant examples. Consider adding more context about how this relates to the position.",
-        "Your answer shows enthusiasm, but could benefit from more concrete examples. Try to quantify your achievements when possible.",
-        "Well structured response. To improve, consider addressing potential follow-up questions the interviewer might have.",
-        "Good points raised! To make your answer stronger, try to align your experience more closely with the job requirements."
-      ];
+      const currentQuestion = interviewQuestions[currentQuestionIndex];
       
-      const grammarFeedbacks = [
-        "Grammar: A few minor issues with tense consistency. Try using past tense consistently when describing previous experiences.",
-        "Grammar: Watch for run-on sentences. Consider breaking longer thoughts into shorter, clearer sentences for better communication.",
-        "Grammar: Good overall, but be careful with subject-verb agreement. Remember that collective nouns like 'team' can be tricky.",
-        "Grammar: Some preposition errors noted. Review phrases like 'in the project' vs 'on the project' for proper usage.",
-        "Grammar: Generally good grammar, but watch for comma usage in complex sentences to improve clarity."
-      ];
-      
-      const randomIndex = Math.floor(Math.random() * feedbacks.length);
-      setAiAnalysis(feedbacks[randomIndex]);
-      setGrammarAnalysis(grammarFeedbacks[randomIndex]);
+      const feedback = generateContextualFeedback(currentQuestion, userAnswer);
+      setAiAnalysis(feedback.analysis);
+      setGrammarAnalysis(feedback.grammar);
       setIsAnalyzing(false);
       
-      // Determine if we should suggest moving to the next question
       if (currentQuestionIndex < interviewQuestions.length - 1) {
-        toast.info("Analysis complete. Ready for the next question when you are.", {
+        const nextQuestionText = generateNextQuestion(userAnswer);
+        toast.info("Analysis complete. Ready for the next question.", {
           action: {
             label: "Next Question",
             onClick: nextQuestion
@@ -106,6 +115,32 @@ const F2FInterview = () => {
         toast.success("Interview complete! You've answered all questions.");
       }
     }, 1500);
+  };
+
+  const generateContextualFeedback = (question: string, answer: string) => {
+    const keywords = answer.toLowerCase().split(' ');
+    const hasSpecificExamples = keywords.includes('example') || keywords.includes('instance');
+    const hasQuantification = /\d+/.test(answer);
+    
+    let analysis = '';
+    if (hasSpecificExamples && hasQuantification) {
+      analysis = "Strong response! You effectively used specific examples and quantified your achievements. ";
+    } else if (hasSpecificExamples) {
+      analysis = "Good use of examples, but try to include more specific numbers or metrics. ";
+    } else {
+      analysis = "Consider including specific examples and quantifying your achievements. ";
+    }
+    
+    if (question.includes("yourself")) {
+      analysis += "For self-introduction questions, remember to highlight your most relevant experiences and align them with the role.";
+    } else if (question.includes("strengths")) {
+      analysis += "When discussing strengths, provide concrete examples of how you've applied them in professional settings.";
+    }
+
+    return {
+      analysis,
+      grammar: "Watch for sentence structure and tense consistency. Use active voice when describing your achievements."
+    };
   };
 
   const handleTranscriptSubmit = () => {
@@ -208,6 +243,8 @@ const F2FInterview = () => {
                         isAnalyzing={isAnalyzing}
                         aiAnalysis={aiAnalysis}
                         grammarAnalysis={grammarAnalysis}
+                        isAnswerVisible={isAnswerVisible}
+                        onToggleAnswer={toggleAnswer}
                       />
                     </TabsContent>
                   </Tabs>

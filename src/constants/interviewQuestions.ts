@@ -1,4 +1,3 @@
-
 export const interviewQuestions = [
   "Tell me about yourself?",
   "What are your greatest strengths and how have you applied them in your career?",
@@ -12,20 +11,28 @@ export const interviewQuestions = [
   "Do you have any questions for us about the position or company?"
 ];
 
-// This structure could be used in the future for adaptive questioning
+// Enhanced structure for adaptive questioning
 export const adaptiveQuestions = {
   "Tell me about yourself?": {
     followUps: [
-      "Could you expand more on your experience with [technology mentioned]?",
+      "Could you elaborate more on your experience with [technology mentioned]?",
       "What motivated your transition from [previous role] to [current interest]?",
-      "How does your background prepare you for this specific role?"
+      "How does your background align with this role?",
     ]
   },
-  "What are your strengths and weaknesses?": {
+  "What are your greatest strengths and how have you applied them in your career?": {
     followUps: [
       "Can you provide a specific example where you demonstrated [strength mentioned]?",
-      "How are you working to improve on [weakness mentioned]?",
-      "How do you think your [strength mentioned] would benefit our team?"
+      "How do you think your [strength mentioned] would benefit our team?",
+      "How do you work on improving these strengths?"
+    ]
+  },
+  "Describe a challenging situation you faced at work and how you overcame it.": {
+    followUps: [
+      "What were the key lessons learned from that experience?",
+      "How would you handle a similar situation differently now?",
+      "How did this experience change your approach to problem-solving?"
     ]
   }
+  // ... Additional adaptive questions can be added here
 };
