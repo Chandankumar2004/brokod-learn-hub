@@ -1,10 +1,22 @@
+
 import { useState, useRef, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, CameraOff, Mic, MicOff, X, Users, MessageSquare, VideoIcon, Pause, Play } from "lucide-react";
+import { Camera, CameraOff, Mic, MicOff, X, Users, MessageSquare, VideoIcon, Pause, Play, ArrowLeft, ArrowRight, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+
+// Interview questions array
+const interviewQuestions = [
+  "Tell me about yourself?",
+  "What are your strengths and weaknesses?",
+  "Why do you want to work with our company?",
+  "Where do you see yourself in 5 years?",
+  "Tell me about a challenge you faced and how you overcame it"
+];
 
 const F2FInterview = () => {
   const [cameraEnabled, setCameraEnabled] = useState(false);
@@ -21,6 +33,13 @@ const F2FInterview = () => {
   const [recordingTime, setRecordingTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerIntervalRef = useRef<number | null>(null);
+  
+  // New state for interview Q&A functionality
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [userAnswer, setUserAnswer] = useState("");
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [transcribedText, setTranscribedText] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -236,12 +255,63 @@ const F2FInterview = () => {
     }
   };
 
+  // New functions for Q&A functionality
+  const nextQuestion = () => {
+    if (currentQuestionIndex < interviewQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      setUserAnswer("");
+      setAiAnalysis(null);
+    }
+  };
+
+  const previousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+      setUserAnswer("");
+      setAiAnalysis(null);
+    }
+  };
+
+  const analyzeAnswer = () => {
+    if (userAnswer.trim() === "") {
+      toast.error("Please provide an answer before submitting");
+      return;
+    }
+
+    setIsAnalyzing(true);
+    
+    // Simulating AI analysis (in a real app, this would call an API)
+    setTimeout(() => {
+      const feedbacks = [
+        "Good start! Try to be more specific about your achievements and skills. Use the STAR method (Situation, Task, Action, Result) to structure your responses.",
+        "Strong answer! You've demonstrated clear communication and relevant examples. Consider adding more context about how this relates to the position.",
+        "Your answer shows enthusiasm, but could benefit from more concrete examples. Try to quantify your achievements when possible.",
+        "Well structured response. To improve, consider addressing potential follow-up questions the interviewer might have.",
+        "Good points raised! To make your answer stronger, try to align your experience more closely with the job requirements."
+      ];
+      
+      const randomIndex = Math.floor(Math.random() * feedbacks.length);
+      setAiAnalysis(feedbacks[randomIndex]);
+      setIsAnalyzing(false);
+    }, 1500);
+  };
+
+  const handleTranscriptSubmit = () => {
+    if (transcribedText.trim() === "") {
+      toast.error("Please transcribe your answer before submitting");
+      return;
+    }
+    
+    setUserAnswer(transcribedText);
+    analyzeAnswer();
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
       
       <div className="container py-8 flex-1 flex flex-col">
-        <Card className="w-full max-w-5xl mx-auto flex-1 overflow-hidden shadow-xl hover-3d bg-white dark:bg-gray-800">
+        <Card className="w-full max-w-7xl mx-auto flex-1 overflow-hidden shadow-xl hover-3d bg-white dark:bg-gray-800">
           <CardHeader className="border-b">
             <div className="flex justify-between items-center">
               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-kodnest-purple to-kodnest-light-blue bg-clip-text text-transparent">
@@ -261,8 +331,9 @@ const F2FInterview = () => {
           
           <CardContent className="p-0 flex flex-col flex-1">
             <div className="flex flex-col md:flex-row h-full">
-              <div className="md:w-3/4 p-4 flex flex-col">
-                <div className="relative flex-1 bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
+              {/* Left Section - Video and Controls */}
+              <div className="md:w-1/2 p-4 flex flex-col">
+                <div className="relative flex-1 bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center mb-4">
                   {!streamActive ? (
                     <div className="text-center p-6">
                       <div className="w-24 h-24 mx-auto mb-4 bg-gray-700 rounded-full flex items-center justify-center">
@@ -368,42 +439,117 @@ const F2FInterview = () => {
                     </>
                   )}
                 </div>
-              </div>
-              
-              <div className="md:w-1/4 border-l md:h-full overflow-auto">
-                <div className="p-4 border-b">
-                  <h3 className="font-medium text-lg mb-2">Interview Notes</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Prepare for your technical interview with these tips:
-                  </p>
-                  <ul className="text-sm mt-2 space-y-1 list-disc pl-4">
-                    <li>Speak clearly and maintain good posture</li>
-                    <li>Explain your thought process when solving problems</li>
-                    <li>Ask clarifying questions when needed</li>
-                    <li>Be prepared to discuss your previous projects</li>
-                    <li>Have questions ready for the interviewer</li>
-                  </ul>
-                </div>
                 
-                <div className="p-4">
-                  <h3 className="font-medium text-lg mb-4">Chat</h3>
-                  <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 h-[200px] mb-4 overflow-y-auto">
-                    <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-                      Chat will appear here once the interview begins
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      className="flex-1 px-3 py-2 rounded-md border bg-background"
-                      placeholder="Type a message..."
-                      disabled={!interviewStarted}
-                    />
-                    <Button size="icon" disabled={!interviewStarted}>
-                      <MessageSquare className="h-4 w-4" />
+                {/* Transcription area */}
+                <div className="mt-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                  <h3 className="font-medium text-lg mb-2">Transcribe Your Answer</h3>
+                  <Textarea 
+                    className="w-full min-h-[120px]" 
+                    placeholder="Type or paste your answer here..."
+                    value={transcribedText}
+                    onChange={(e) => setTranscribedText(e.target.value)}
+                  />
+                  <div className="flex justify-end mt-2">
+                    <Button
+                      onClick={handleTranscriptSubmit}
+                      className="gap-2"
+                    >
+                      <Send className="h-4 w-4" />
+                      Submit
                     </Button>
                   </div>
                 </div>
+              </div>
+              
+              {/* Right Section - Q&A and Analysis */}
+              <div className="md:w-1/2 border-l md:h-full overflow-auto">
+                <Tabs defaultValue="questions" className="w-full">
+                  <TabsList className="w-full grid grid-cols-2 rounded-none">
+                    <TabsTrigger value="questions">Interview Questions</TabsTrigger>
+                    <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="questions" className="p-4 h-[calc(100vh-12rem)] flex flex-col">
+                    <div className="border rounded-lg p-4 mb-4 bg-blue-50 dark:bg-blue-900/20 flex-1">
+                      <div className="mb-2 text-blue-600 dark:text-blue-400 font-semibold">
+                        Question {currentQuestionIndex + 1} of {interviewQuestions.length}
+                      </div>
+                      <h2 className="text-xl font-bold mb-4">
+                        {interviewQuestions[currentQuestionIndex]}
+                      </h2>
+                      
+                      <div className="mt-4 text-gray-600 dark:text-gray-300">
+                        {userAnswer ? (
+                          <div>
+                            <h3 className="font-semibold mb-2">Your Answer:</h3>
+                            <p className="whitespace-pre-wrap">{userAnswer}</p>
+                          </div>
+                        ) : (
+                          <p className="italic">Submit your answer using the form on the left</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between mt-auto">
+                      <Button
+                        variant="outline"
+                        onClick={previousQuestion}
+                        disabled={currentQuestionIndex === 0}
+                        className="gap-2"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      
+                      <Button
+                        onClick={nextQuestion}
+                        disabled={currentQuestionIndex === interviewQuestions.length - 1}
+                        className="gap-2"
+                      >
+                        Next
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="analysis" className="p-4 h-[calc(100vh-12rem)]">
+                    {isAnalyzing ? (
+                      <div className="h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="inline-block w-12 h-12 border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full animate-spin mb-4"></div>
+                          <p>Analyzing your answer...</p>
+                        </div>
+                      </div>
+                    ) : aiAnalysis ? (
+                      <div className="border rounded-lg p-6 mb-4 bg-green-50 dark:bg-green-900/20">
+                        <h2 className="text-xl font-bold mb-4 text-green-600 dark:text-green-400">
+                          AI Feedback
+                        </h2>
+                        <div className="prose dark:prose-invert">
+                          <p className="whitespace-pre-wrap">{aiAnalysis}</p>
+                          
+                          <div className="mt-6">
+                            <h3 className="font-semibold mb-2">Improvement Tips:</h3>
+                            <ul className="list-disc pl-5 space-y-2">
+                              <li>Use specific examples from your past experience</li>
+                              <li>Quantify your achievements when possible</li>
+                              <li>Connect your skills to the job requirements</li>
+                              <li>Practice with clearer enunciation and pacing</li>
+                              <li>Maintain confident body language and eye contact</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-center p-8">
+                        <div>
+                          <p className="text-lg mb-4">Submit your answer to receive AI analysis and feedback</p>
+                          <p className="text-sm text-gray-500">The AI will review your response and provide personalized feedback to help improve your interview skills</p>
+                        </div>
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
             </div>
           </CardContent>
