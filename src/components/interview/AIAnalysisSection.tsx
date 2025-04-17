@@ -2,9 +2,14 @@
 interface AIAnalysisSectionProps {
   isAnalyzing: boolean;
   aiAnalysis: string | null;
+  grammarAnalysis: string | null;
 }
 
-export const AIAnalysisSection = ({ isAnalyzing, aiAnalysis }: AIAnalysisSectionProps) => {
+export const AIAnalysisSection = ({ 
+  isAnalyzing, 
+  aiAnalysis, 
+  grammarAnalysis 
+}: AIAnalysisSectionProps) => {
   return (
     <div className="p-4 h-[calc(100vh-12rem)]">
       {isAnalyzing ? (
@@ -21,6 +26,12 @@ export const AIAnalysisSection = ({ isAnalyzing, aiAnalysis }: AIAnalysisSection
           </h2>
           <div className="prose dark:prose-invert">
             <p className="whitespace-pre-wrap">{aiAnalysis}</p>
+            
+            {grammarAnalysis && (
+              <div className="mt-4 p-3 border border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800 rounded">
+                <p className="font-medium text-yellow-800 dark:text-yellow-400">{grammarAnalysis}</p>
+              </div>
+            )}
             
             <div className="mt-6">
               <h3 className="font-semibold mb-2">Improvement Tips:</h3>

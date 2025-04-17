@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, CameraOff, Mic, MicOff, VideoIcon, Pause, Play } from "lucide-react";
@@ -23,6 +22,7 @@ export const VideoSection = ({
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -171,8 +171,10 @@ export const VideoSection = ({
 
         mediaRecorder.onstop = () => {
           const recordedBlob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
-          URL.createObjectURL(recordedBlob);
-          toast.success("Recording stopped");
+          const url = URL.createObjectURL(recordedBlob);
+          
+          simulateTranscription();
+          
           recordedChunksRef.current = [];
           setRecordingTime(0);
           stopTimer();
@@ -211,8 +213,27 @@ export const VideoSection = ({
     }
   };
 
+  const simulateTranscription = () => {
+    setIsTranscribing(true);
+    
+    const sampleResponses = [
+      "I believe my greatest strength is my ability to adapt quickly to changing environments. In my previous role at XYZ Corp, I had to learn a completely new tech stack within two weeks to meet a critical deadline.",
+      "I'm interested in this position because I've been following your company's innovative work in AI and machine learning. The opportunity to contribute to projects that have a real impact on people's lives is exactly what I'm looking for in my next role.",
+      "A challenging situation I faced was when our team lost a key member right before a major product launch. I took the initiative to redistribute tasks and worked extra hours to ensure we met our deadline without compromising quality.",
+      "In five years, I see myself having grown into a leadership role where I can mentor junior developers while still maintaining hands-on involvement with cutting-edge technologies.",
+      "I approach problem-solving by first fully understanding the requirements, breaking down complex issues into manageable parts, and systematically addressing each component while keeping the big picture in mind."
+    ];
+    
+    setTimeout(() => {
+      const randomIndex = Math.floor(Math.random() * sampleResponses.length);
+      setTranscribedText(sampleResponses[randomIndex]);
+      setIsTranscribing(false);
+      toast.success("Answer transcribed successfully");
+    }, 2000);
+  };
+
   return (
-    <div className="md:w-1/2 p-4 flex flex-col">
+    <div className="p-4 flex flex-col h-full">
       <div className="relative flex-1 bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center mb-4">
         {!streamActive ? (
           <div className="text-center p-6">
@@ -289,21 +310,31 @@ export const VideoSection = ({
       </div>
 
       <div className="mt-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
-        <h3 className="font-medium text-lg mb-2">Transcribe Your Answer</h3>
-        <Textarea 
-          className="w-full min-h-[120px]" 
-          placeholder="Type or paste your answer here..."
-          value={transcribedText}
-          onChange={(e) => setTranscribedText(e.target.value)}
-        />
-        <div className="flex justify-end mt-2">
-          <Button
-            onClick={onTranscriptSubmit}
-            className="gap-2"
-          >
-            Submit Answer
-          </Button>
-        </div>
+        <h3 className="font-medium text-lg mb-2">Your Answer</h3>
+        {isTranscribing ? (
+          <div className="flex items-center justify-center p-6">
+            <div className="inline-block w-8 h-8 border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full animate-spin mr-3"></div>
+            <p>Transcribing your answer...</p>
+          </div>
+        ) : (
+          <>
+            <Textarea 
+              className="w-full min-h-[120px]" 
+              placeholder="Your answer will appear here after recording, or you can type/paste it manually..."
+              value={transcribedText}
+              onChange={(e) => setTranscribedText(e.target.value)}
+            />
+            <div className="flex justify-end mt-2">
+              <Button
+                onClick={onTranscriptSubmit}
+                className="gap-2"
+                disabled={isTranscribing || !transcribedText.trim()}
+              >
+                Submit Answer
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
