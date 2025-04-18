@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -38,7 +37,7 @@ export const TranscriptionSection = ({
         <>
           <Textarea 
             className="w-full min-h-[120px]" 
-            placeholder="Your answer will appear here after recording, or you can type/paste it manually..."
+            placeholder="Your answer will appear here after recording..."
             value={transcribedText}
             onChange={(e) => onTranscribedTextChange(e.target.value)}
           />
@@ -46,7 +45,7 @@ export const TranscriptionSection = ({
           {analysis && (
             <div className="mt-4">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium">Analysis & Feedback</h4>
+                <h4 className="font-medium">Analysis & Next Question</h4>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -69,17 +68,12 @@ export const TranscriptionSection = ({
                   
                   {analysis.grammarSuggestions && (
                     <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
-                      <p className="text-yellow-700 dark:text-yellow-300">
-                        Grammar Suggestions:
-                      </p>
-                      <p>{analysis.grammarSuggestions}</p>
+                      <p className="text-yellow-700 dark:text-yellow-300">{analysis.grammarSuggestions}</p>
                     </div>
                   )}
                   
                   <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded">
-                    <p className="text-green-700 dark:text-green-300">
-                      Next Question:
-                    </p>
+                    <p className="text-green-700 dark:text-green-300">Next Question:</p>
                     <p>{analysis.nextQuestion}</p>
                   </div>
                 </div>

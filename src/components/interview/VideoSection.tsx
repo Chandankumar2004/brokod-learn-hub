@@ -4,6 +4,7 @@ import { VideoControls } from "./controls/VideoControls";
 import { RecordingControls } from "./controls/RecordingControls";
 import { VideoPreview } from "./preview/VideoPreview";
 import { TranscriptionSection } from "./transcription/TranscriptionSection";
+import { setupHeadTracking } from "@/utils/headTracking";
 
 interface VideoSectionProps {
   transcribedText: string;
@@ -43,6 +44,15 @@ export const VideoSection = ({
       stopAllTracks();
     };
   }, []);
+
+  useEffect(() => {
+    if (streamActive && videoRef.current) {
+      const cleanup = setupHeadTracking(videoRef.current, (warning) => {
+        toast.warning(warning);
+      });
+      return cleanup;
+    }
+  }, [streamActive]);
 
   const stopAllTracks = () => {
     if (mediaStreamRef.current) {
@@ -215,31 +225,28 @@ export const VideoSection = ({
   };
 
   const analyzeTranscribedText = (text: string) => {
+    if (!text.trim()) return;
+
     const wordCount = text.split(/\s+/).length;
-    const sentences = text.split(/[.!?]+/).length;
     
     let feedback = "";
     let grammar = "";
     let nextQuestion = "";
 
     if (wordCount < 20) {
-      feedback = "Your answer is quite brief. Consider providing more details and examples.";
+      feedback = "Consider providing more details in your answer.";
     } else if (wordCount > 100) {
-      feedback = "Good detailed response! You've provided comprehensive information.";
-    } else {
-      feedback = "Your answer has a good length. Consider adding specific examples.";
+      feedback = "Good detailed response! You've covered the topic well.";
     }
 
-    if (sentences < 3) {
-      grammar = "Try to vary your sentence structure. Use a mix of simple and complex sentences.";
+    if (text.toLowerCase().includes("um") || text.toLowerCase().includes("uh")) {
+      grammar = "Try to reduce filler words like 'um' and 'uh' in your responses.";
     }
 
     if (text.toLowerCase().includes("experience")) {
-      nextQuestion = "Can you elaborate on a specific challenge you faced during that experience?";
-    } else if (text.toLowerCase().includes("skill")) {
-      nextQuestion = "How have you applied this skill in real-world situations?";
+      nextQuestion = "Can you elaborate on the specific skills you gained from that experience?";
     } else {
-      nextQuestion = "Could you provide a specific example to illustrate your point?";
+      nextQuestion = "Could you provide a specific example to support your answer?";
     }
 
     setAnalysis({
@@ -252,21 +259,12 @@ export const VideoSection = ({
   const simulateTranscription = () => {
     setIsTranscribing(true);
     
-    const sampleResponses = [
-      "I believe my greatest strength is my ability to adapt quickly to changing environments. In my previous role at XYZ Corp, I had to learn a completely new tech stack within two weeks to meet a critical deadline.",
-      "I'm interested in this position because I've been following your company's innovative work in AI and machine learning. The opportunity to contribute to projects that have a real impact on people's lives is exactly what I'm looking for in my next role.",
-      "A challenging situation I faced was when our team lost a key member right before a major product launch. I took the initiative to redistribute tasks and worked extra hours to ensure we met our deadline without compromising quality.",
-      "In five years, I see myself having grown into a leadership role where I can mentor junior developers while still maintaining hands-on involvement with cutting-edge technologies.",
-      "I approach problem-solving by first fully understanding the requirements, breaking down complex issues into manageable parts, and systematically addressing each component while keeping the big picture in mind."
-    ];
-    
     setTimeout(() => {
-      const randomIndex = Math.floor(Math.random() * sampleResponses.length);
-      const response = sampleResponses[randomIndex];
-      setTranscribedText(response);
-      analyzeTranscribedText(response);
+      const userSpeech = ""; // This will be replaced with actual transcribed speech
+      setTranscribedText(userSpeech);
+      analyzeTranscribedText(userSpeech);
       setIsTranscribing(false);
-      toast.success("Answer transcribed and analyzed");
+      toast.success("Speech transcribed successfully");
     }, 2000);
   };
 
