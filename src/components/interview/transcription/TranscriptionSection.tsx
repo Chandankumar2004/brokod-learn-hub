@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { toast } from "sonner";
 
 interface TranscriptionSectionProps {
   isTranscribing: boolean;
@@ -26,6 +27,14 @@ export const TranscriptionSection = ({
   showAnalysis,
   onToggleAnalysis
 }: TranscriptionSectionProps) => {
+  const handleSubmit = () => {
+    if (!transcribedText.trim()) {
+      toast.error("Please provide an answer before submitting");
+      return;
+    }
+    onTranscriptSubmit();
+  };
+
   return (
     <div className="mt-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
       <div className="flex justify-between items-center mb-4">
@@ -53,44 +62,43 @@ export const TranscriptionSection = ({
         </div>
       ) : (
         <>
-          <Textarea 
-            className="w-full min-h-[120px] mb-4 font-medium" 
-            placeholder="Your spoken answer will appear here after recording..."
-            value={transcribedText}
-            onChange={(e) => onTranscribedTextChange(e.target.value)}
-            readOnly
-          />
+          <div className="mb-4">
+            <Textarea 
+              className="w-full min-h-[120px] mb-2 font-medium" 
+              placeholder="Your spoken answer will appear here after recording..."
+              value={transcribedText}
+              onChange={(e) => onTranscribedTextChange(e.target.value)}
+              readOnly
+            />
+            <Button
+              onClick={handleSubmit}
+              className="w-full mt-2"
+              disabled={isTranscribing || !transcribedText.trim()}
+            >
+              Submit Answer for Analysis
+            </Button>
+          </div>
           
           {analysis && showAnalysis && (
-            <div className="space-y-4 mt-6">
+            <div className="space-y-4">
               <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <h4 className="font-semibold mb-2">Analysis of Your Answer:</h4>
+                <h4 className="font-semibold mb-2">Analysis & Feedback:</h4>
                 <p className="text-blue-700 dark:text-blue-300">{analysis.feedback}</p>
               </div>
               
               {analysis.grammarSuggestions && (
                 <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                  <h4 className="font-semibold mb-2">Language Suggestions:</h4>
+                  <h4 className="font-semibold mb-2">Areas to Improve:</h4>
                   <p className="text-yellow-700 dark:text-yellow-300">{analysis.grammarSuggestions}</p>
                 </div>
               )}
               
               <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <h4 className="font-semibold mb-2">Follow-up Question:</h4>
+                <h4 className="font-semibold mb-2">Next Question Based on Your Answer:</h4>
                 <p className="text-green-700 dark:text-green-300">{analysis.nextQuestion}</p>
               </div>
             </div>
           )}
-
-          <div className="flex justify-end mt-4">
-            <Button
-              onClick={onTranscriptSubmit}
-              className="gap-2"
-              disabled={isTranscribing || !transcribedText.trim()}
-            >
-              Analyze Answer
-            </Button>
-          </div>
         </>
       )}
     </div>

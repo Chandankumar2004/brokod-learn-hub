@@ -228,24 +228,34 @@ export const VideoSection = ({
     if (!text.trim()) return;
 
     const wordCount = text.split(/\s+/).length;
+    const containsSpecificExamples = /example|instance|case|situation/i.test(text);
+    const containsNumbers = /\d+/.test(text);
+    const usesFillerWords = /(um|uh|like|you know|basically|actually)/gi.test(text);
     
     let feedback = "";
     let grammar = "";
     let nextQuestion = "";
 
-    if (text.toLowerCase().includes("experience") || text.toLowerCase().includes("project")) {
-      feedback = "Good job providing specific examples from your experience.";
-      nextQuestion = "Could you elaborate on the specific skills you utilized in that situation?";
-    } else if (wordCount < 30) {
-      feedback = "Consider providing more details and specific examples in your answer.";
-      nextQuestion = "Can you share a specific example that demonstrates this?";
+    if (containsSpecificExamples && containsNumbers) {
+      feedback = "Excellent use of specific examples and quantifiable achievements! Your answer demonstrates strong communication skills.";
+    } else if (containsSpecificExamples) {
+      feedback = "Good use of specific examples. Consider adding more quantifiable results to strengthen your answer.";
     } else {
-      feedback = "You've provided a detailed response. Consider quantifying your achievements.";
-      nextQuestion = "What measurable impact did your actions have?";
+      feedback = "Try to include specific examples and numbers to make your answer more impactful.";
     }
 
-    if (text.toLowerCase().includes("um") || text.toLowerCase().includes("uh")) {
-      grammar = "Try to reduce filler words like 'um' and 'uh' in your responses.";
+    if (usesFillerWords) {
+      grammar = "Consider reducing filler words to make your response more concise and professional.";
+    }
+
+    if (text.toLowerCase().includes("project") || text.toLowerCase().includes("experience")) {
+      nextQuestion = "What specific challenges did you face in this project/experience, and how did you overcome them?";
+    } else if (text.toLowerCase().includes("team") || text.toLowerCase().includes("collaboration")) {
+      nextQuestion = "Can you elaborate on your role within the team and how you contributed to its success?";
+    } else if (wordCount < 50) {
+      nextQuestion = "Could you provide more details about a specific situation that demonstrates this?";
+    } else {
+      nextQuestion = "How would you apply these skills/experiences in our company?";
     }
 
     setAnalysis({
