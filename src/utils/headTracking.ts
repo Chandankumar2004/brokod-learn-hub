@@ -1,4 +1,3 @@
-
 export const setupHeadTracking = (videoElement: HTMLVideoElement | null, onWarning: (message: string) => void) => {
   if (!videoElement) return;
 
