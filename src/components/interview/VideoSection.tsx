@@ -24,7 +24,13 @@ export const VideoSection = ({
   const [isPaused, setIsPaused] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isTranscribing, setIsTranscribing] = useState(false);
-  
+  const [analysis, setAnalysis] = useState<{
+    feedback: string;
+    grammarSuggestions: string;
+    nextQuestion: string;
+  } | null>(null);
+  const [showAnalysis, setShowAnalysis] = useState(true);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -208,6 +214,41 @@ export const VideoSection = ({
     }
   };
 
+  const analyzeTranscribedText = (text: string) => {
+    const wordCount = text.split(/\s+/).length;
+    const sentences = text.split(/[.!?]+/).length;
+    
+    let feedback = "";
+    let grammar = "";
+    let nextQuestion = "";
+
+    if (wordCount < 20) {
+      feedback = "Your answer is quite brief. Consider providing more details and examples.";
+    } else if (wordCount > 100) {
+      feedback = "Good detailed response! You've provided comprehensive information.";
+    } else {
+      feedback = "Your answer has a good length. Consider adding specific examples.";
+    }
+
+    if (sentences < 3) {
+      grammar = "Try to vary your sentence structure. Use a mix of simple and complex sentences.";
+    }
+
+    if (text.toLowerCase().includes("experience")) {
+      nextQuestion = "Can you elaborate on a specific challenge you faced during that experience?";
+    } else if (text.toLowerCase().includes("skill")) {
+      nextQuestion = "How have you applied this skill in real-world situations?";
+    } else {
+      nextQuestion = "Could you provide a specific example to illustrate your point?";
+    }
+
+    setAnalysis({
+      feedback,
+      grammarSuggestions: grammar,
+      nextQuestion
+    });
+  };
+
   const simulateTranscription = () => {
     setIsTranscribing(true);
     
@@ -221,9 +262,11 @@ export const VideoSection = ({
     
     setTimeout(() => {
       const randomIndex = Math.floor(Math.random() * sampleResponses.length);
-      setTranscribedText(sampleResponses[randomIndex]);
+      const response = sampleResponses[randomIndex];
+      setTranscribedText(response);
+      analyzeTranscribedText(response);
       setIsTranscribing(false);
-      toast.success("Answer transcribed successfully");
+      toast.success("Answer transcribed and analyzed");
     }, 2000);
   };
 
@@ -259,6 +302,9 @@ export const VideoSection = ({
         transcribedText={transcribedText}
         onTranscribedTextChange={setTranscribedText}
         onTranscriptSubmit={onTranscriptSubmit}
+        analysis={analysis || undefined}
+        showAnalysis={showAnalysis}
+        onToggleAnalysis={() => setShowAnalysis(!showAnalysis)}
       />
     </div>
   );
