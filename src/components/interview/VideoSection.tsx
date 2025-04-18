@@ -233,20 +233,19 @@ export const VideoSection = ({
     let grammar = "";
     let nextQuestion = "";
 
-    if (wordCount < 20) {
-      feedback = "Consider providing more details in your answer.";
-    } else if (wordCount > 100) {
-      feedback = "Good detailed response! You've covered the topic well.";
+    if (text.toLowerCase().includes("experience") || text.toLowerCase().includes("project")) {
+      feedback = "Good job providing specific examples from your experience.";
+      nextQuestion = "Could you elaborate on the specific skills you utilized in that situation?";
+    } else if (wordCount < 30) {
+      feedback = "Consider providing more details and specific examples in your answer.";
+      nextQuestion = "Can you share a specific example that demonstrates this?";
+    } else {
+      feedback = "You've provided a detailed response. Consider quantifying your achievements.";
+      nextQuestion = "What measurable impact did your actions have?";
     }
 
     if (text.toLowerCase().includes("um") || text.toLowerCase().includes("uh")) {
       grammar = "Try to reduce filler words like 'um' and 'uh' in your responses.";
-    }
-
-    if (text.toLowerCase().includes("experience")) {
-      nextQuestion = "Can you elaborate on the specific skills you gained from that experience?";
-    } else {
-      nextQuestion = "Could you provide a specific example to support your answer?";
     }
 
     setAnalysis({
@@ -260,10 +259,12 @@ export const VideoSection = ({
     setIsTranscribing(true);
     
     setTimeout(() => {
-      const userSpeech = ""; // This will be replaced with actual transcribed speech
-      setTranscribedText(userSpeech);
-      analyzeTranscribedText(userSpeech);
+      const recordingData = recordedChunksRef.current;
+      const simulatedText = ""; // This will be replaced with actual transcribed text
+      setTranscribedText(simulatedText);
       setIsTranscribing(false);
+      
+      analyzeTranscribedText(simulatedText);
       toast.success("Speech transcribed successfully");
     }, 2000);
   };
