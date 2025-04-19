@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -13,6 +12,12 @@ interface TranscriptionSectionProps {
     feedback: string;
     grammarSuggestions: string;
     nextQuestion: string;
+    contentAnalysis: {
+      clarity: number;
+      relevance: number;
+      depth: number;
+      emotionalCues: string[];
+    };
   };
   showAnalysis: boolean;
   onToggleAnalysis: () => void;
@@ -35,10 +40,22 @@ export const TranscriptionSection = ({
     onTranscriptSubmit();
   };
 
-  // Split transcribed text into interviewer and candidate parts
+  const renderAnalysisScore = (score: number) => {
+    return (
+      <div className="flex items-center gap-2">
+        <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+          <div 
+            className="bg-blue-500 h-2 rounded-full" 
+            style={{ width: `${score * 100}%` }}
+          />
+        </div>
+        <span className="text-sm">{Math.round(score * 100)}%</span>
+      </div>
+    );
+  };
+
   const [interviewerText, candidateText] = parseTranscription(transcribedText);
 
-  // Handle text change to maintain proper format
   const handleCandidateTextChange = (newCandidateText: string) => {
     const updatedText = `Interviewer: ${interviewerText}\nCandidate: ${newCandidateText}`;
     onTranscribedTextChange(updatedText);
@@ -99,7 +116,35 @@ export const TranscriptionSection = ({
           {analysis && showAnalysis && (
             <div className="space-y-4 mt-6 border-t pt-4">
               <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                <h4 className="font-semibold mb-2 text-indigo-700 dark:text-indigo-300">Corrected Response:</h4>
+                <h4 className="font-semibold mb-2 text-indigo-700 dark:text-indigo-300">Response Analysis:</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Clarity</label>
+                    {renderAnalysisScore(analysis.contentAnalysis.clarity)}
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Relevance</label>
+                    {renderAnalysisScore(analysis.contentAnalysis.relevance)}
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Depth</label>
+                    {renderAnalysisScore(analysis.contentAnalysis.depth)}
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <h5 className="text-sm font-medium mb-2">Emotional Cues:</h5>
+                  <div className="flex flex-wrap gap-2">
+                    {analysis.contentAnalysis.emotionalCues.map((cue, index) => (
+                      <span key={index} className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded text-sm">
+                        {cue}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <h4 className="font-semibold mb-2 text-green-700 dark:text-green-300">Feedback:</h4>
                 <p className="text-gray-700 dark:text-gray-300">{analysis.feedback}</p>
               </div>
               
@@ -110,8 +155,8 @@ export const TranscriptionSection = ({
                 </div>
               )}
               
-              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <h4 className="font-semibold mb-2 text-green-700 dark:text-green-300">Follow-up Question:</h4>
+              <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <h4 className="font-semibold mb-2 text-purple-700 dark:text-purple-300">Follow-up Question:</h4>
                 <p className="text-gray-700 dark:text-gray-300">{analysis.nextQuestion}</p>
               </div>
             </div>
@@ -122,7 +167,6 @@ export const TranscriptionSection = ({
   );
 };
 
-// Helper function to parse transcription text
 const parseTranscription = (text: string): [string, string] => {
   const parts = text.split('\n');
   let interviewerText = "";
