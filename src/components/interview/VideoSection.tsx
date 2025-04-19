@@ -30,6 +30,12 @@ export const VideoSection = ({
     feedback: string;
     grammarSuggestions: string;
     nextQuestion: string;
+    contentAnalysis: {
+      clarity: number;
+      relevance: number;
+      depth: number;
+      emotionalCues: string[];
+    };
   } | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(true);
 
@@ -239,6 +245,27 @@ export const VideoSection = ({
     let grammar = "";
     let nextQuestion = "";
 
+    const emotionalCues = [];
+    if (candidateText.includes('challenge') || candidateText.includes('difficult')) {
+      emotionalCues.push('Challenged');
+    }
+    if (candidateText.includes('proud') || candidateText.includes('success')) {
+      emotionalCues.push('Confident');
+    }
+    if (candidateText.includes('learn') || candidateText.includes('growth')) {
+      emotionalCues.push('Growth-minded');
+    }
+    if (candidateText.includes('team') || candidateText.includes('collaborate')) {
+      emotionalCues.push('Collaborative');
+    }
+    if (emotionalCues.length === 0) {
+      emotionalCues.push('Neutral');
+    }
+
+    const clarity = containsSpecificExamples ? 0.8 : 0.5;
+    const relevance = wordCount > 50 ? 0.7 : 0.4;
+    const depth = containsNumbers && containsSpecificExamples ? 0.9 : 0.6;
+
     if (containsSpecificExamples && containsNumbers) {
       feedback = "Excellent use of specific examples and quantifiable achievements! Your answer demonstrates strong communication skills.";
     } else if (containsSpecificExamples) {
@@ -264,14 +291,19 @@ export const VideoSection = ({
     setAnalysis({
       feedback,
       grammarSuggestions: grammar,
-      nextQuestion
+      nextQuestion,
+      contentAnalysis: {
+        clarity,
+        relevance,
+        depth,
+        emotionalCues
+      }
     });
   };
 
   const simulateTranscription = () => {
     setIsTranscribing(true);
     
-    // Simulate a delay for transcription
     setTimeout(() => {
       const currentQuestion = interviewQuestions[Math.floor(Math.random() * 3)];
       const sampleResponses = [
