@@ -35,6 +35,23 @@ export const TranscriptionSection = ({
     onTranscriptSubmit();
   };
 
+  // Split transcribed text into interviewer and candidate parts
+  const interviewerText = transcribedText.includes('Candidate:') 
+    ? transcribedText.split('Candidate:')[0].trim() 
+    : transcribedText;
+    
+  const candidateText = transcribedText.includes('Candidate:') 
+    ? transcribedText.split('Candidate:')[1] || '' 
+    : '';
+
+  // Handle text change to maintain proper format
+  const handleCandidateTextChange = (newCandidateText: string) => {
+    const updatedText = interviewerText 
+      ? `${interviewerText}\nCandidate:${newCandidateText}`
+      : `Candidate:${newCandidateText}`;
+    onTranscribedTextChange(updatedText);
+  };
+
   return (
     <div className="mt-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
       <div className="flex justify-between items-center mb-4">
@@ -66,16 +83,15 @@ export const TranscriptionSection = ({
             <div className="space-y-4 mb-4">
               <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <p className="font-semibold text-sm text-blue-700 dark:text-blue-300 mb-2">Interviewer:</p>
-                <p className="text-gray-700 dark:text-gray-300">{transcribedText.split('Candidate:')[0]}</p>
+                <p className="text-gray-700 dark:text-gray-300">{interviewerText}</p>
               </div>
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <p className="font-semibold text-sm text-green-700 dark:text-green-300 mb-2">Candidate:</p>
                 <Textarea 
                   className="w-full min-h-[120px] mb-2 font-medium bg-white/50 dark:bg-black/10" 
                   placeholder="Your spoken answer will appear here after recording..."
-                  value={transcribedText.split('Candidate:')[1] || ''}
-                  onChange={(e) => onTranscribedTextChange(`${transcribedText.split('Candidate:')[0]}Candidate:${e.target.value}`)}
-                  readOnly
+                  value={candidateText}
+                  onChange={(e) => handleCandidateTextChange(e.target.value)}
                 />
               </div>
             </div>

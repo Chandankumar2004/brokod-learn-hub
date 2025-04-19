@@ -227,10 +227,12 @@ export const VideoSection = ({
   const analyzeTranscribedText = (text: string) => {
     if (!text.trim()) return;
 
-    const wordCount = text.split(/\s+/).length;
-    const containsSpecificExamples = /example|instance|case|situation/i.test(text);
-    const containsNumbers = /\d+/.test(text);
-    const usesFillerWords = /(um|uh|like|you know|basically|actually)/gi.test(text);
+    const candidateText = text.includes('Candidate:') ? text.split('Candidate:')[1] || '' : text;
+    
+    const wordCount = candidateText.split(/\s+/).length;
+    const containsSpecificExamples = /example|instance|case|situation/i.test(candidateText);
+    const containsNumbers = /\d+/.test(candidateText);
+    const usesFillerWords = /(um|uh|like|you know|basically|actually)/gi.test(candidateText);
     
     let feedback = "";
     let grammar = "";
@@ -248,9 +250,9 @@ export const VideoSection = ({
       grammar = "Consider reducing filler words to make your response more concise and professional.";
     }
 
-    if (text.toLowerCase().includes("project") || text.toLowerCase().includes("experience")) {
+    if (candidateText.toLowerCase().includes("project") || candidateText.toLowerCase().includes("experience")) {
       nextQuestion = "What specific challenges did you face in this project/experience, and how did you overcome them?";
-    } else if (text.toLowerCase().includes("team") || text.toLowerCase().includes("collaboration")) {
+    } else if (candidateText.toLowerCase().includes("team") || candidateText.toLowerCase().includes("collaboration")) {
       nextQuestion = "Can you elaborate on your role within the team and how you contributed to its success?";
     } else if (wordCount < 50) {
       nextQuestion = "Could you provide more details about a specific situation that demonstrates this?";
@@ -269,8 +271,25 @@ export const VideoSection = ({
     setIsTranscribing(true);
     
     setTimeout(() => {
-      const recordingData = recordedChunksRef.current;
-      const simulatedText = ""; // This will be replaced with actual transcribed text
+      const sampleInterviews = [
+        {
+          interviewer: "Can you tell me about your experience with React?",
+          candidate: "Yes, I've been working with React for about 3 years now. I've built several projects including an e-commerce site and a dashboard application. I really enjoy using hooks and functional components."
+        },
+        {
+          interviewer: "Describe a challenging project you worked on recently.",
+          candidate: "I worked on a real-time analytics dashboard that had performance issues. We had to optimize the rendering and implement virtualization to handle large datasets smoothly."
+        },
+        {
+          interviewer: "How do you handle conflicts in a team?",
+          candidate: "I believe in addressing conflicts directly but respectfully. In my last team, we had disagreements about the architecture, so I organized a meeting where everyone could share their concerns and we reached a compromise."
+        }
+      ];
+      
+      const randomSample = sampleInterviews[Math.floor(Math.random() * sampleInterviews.length)];
+      
+      const simulatedText = `Interviewer: ${randomSample.interviewer}\nCandidate: ${randomSample.candidate}`;
+      
       setTranscribedText(simulatedText);
       setIsTranscribing(false);
       
