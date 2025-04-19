@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { setupHeadTracking } from "@/utils/headTracking";
@@ -70,7 +69,7 @@ export const VideoSection = ({
   const handleTranscribedTextChange = (text: string) => {
     setTranscribedText(text);
     if (text) {
-      const analysisResult = analyzeResponse(text);
+      const analysisResult: InterviewAnalysis = analyzeResponse(text);
       setAnalysis(analysisResult);
     }
   };
