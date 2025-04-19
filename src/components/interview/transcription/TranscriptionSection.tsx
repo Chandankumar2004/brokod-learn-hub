@@ -38,7 +38,7 @@ export const TranscriptionSection = ({
   return (
     <div className="mt-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="font-medium text-lg">Your Spoken Answer</h3>
+        <h3 className="font-medium text-lg">Interview Transcript</h3>
         {analysis && (
           <Button
             variant="ghost"
@@ -58,18 +58,27 @@ export const TranscriptionSection = ({
       {isTranscribing ? (
         <div className="flex items-center justify-center p-6">
           <div className="inline-block w-8 h-8 border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full animate-spin mr-3"></div>
-          <p>Converting your speech to text...</p>
+          <p>Transcribing interview...</p>
         </div>
       ) : (
         <>
           <div className="mb-4">
-            <Textarea 
-              className="w-full min-h-[120px] mb-2 font-medium" 
-              placeholder="Your spoken answer will appear here after recording..."
-              value={transcribedText}
-              onChange={(e) => onTranscribedTextChange(e.target.value)}
-              readOnly
-            />
+            <div className="space-y-4 mb-4">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="font-semibold text-sm text-blue-700 dark:text-blue-300 mb-2">Interviewer:</p>
+                <p className="text-gray-700 dark:text-gray-300">{transcribedText.split('Candidate:')[0]}</p>
+              </div>
+              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <p className="font-semibold text-sm text-green-700 dark:text-green-300 mb-2">Candidate:</p>
+                <Textarea 
+                  className="w-full min-h-[120px] mb-2 font-medium bg-white/50 dark:bg-black/10" 
+                  placeholder="Your spoken answer will appear here after recording..."
+                  value={transcribedText.split('Candidate:')[1] || ''}
+                  onChange={(e) => onTranscribedTextChange(`${transcribedText.split('Candidate:')[0]}Candidate:${e.target.value}`)}
+                  readOnly
+                />
+              </div>
+            </div>
             <Button
               onClick={handleSubmit}
               className="w-full mt-2"
@@ -80,22 +89,22 @@ export const TranscriptionSection = ({
           </div>
           
           {analysis && showAnalysis && (
-            <div className="space-y-4">
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <h4 className="font-semibold mb-2">Analysis & Feedback:</h4>
-                <p className="text-blue-700 dark:text-blue-300">{analysis.feedback}</p>
+            <div className="space-y-4 mt-6 border-t pt-4">
+              <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                <h4 className="font-semibold mb-2 text-indigo-700 dark:text-indigo-300">Corrected Response:</h4>
+                <p className="text-gray-700 dark:text-gray-300">{analysis.feedback}</p>
               </div>
               
               {analysis.grammarSuggestions && (
                 <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                  <h4 className="font-semibold mb-2">Areas to Improve:</h4>
-                  <p className="text-yellow-700 dark:text-yellow-300">{analysis.grammarSuggestions}</p>
+                  <h4 className="font-semibold mb-2 text-yellow-700 dark:text-yellow-300">Language Improvements:</h4>
+                  <p className="text-gray-700 dark:text-gray-300">{analysis.grammarSuggestions}</p>
                 </div>
               )}
               
               <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <h4 className="font-semibold mb-2">Next Question Based on Your Answer:</h4>
-                <p className="text-green-700 dark:text-green-300">{analysis.nextQuestion}</p>
+                <h4 className="font-semibold mb-2 text-green-700 dark:text-green-300">Follow-up Question:</h4>
+                <p className="text-gray-700 dark:text-gray-300">{analysis.nextQuestion}</p>
               </div>
             </div>
           )}
