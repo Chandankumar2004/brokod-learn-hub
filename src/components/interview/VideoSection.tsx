@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { setupHeadTracking } from "@/utils/headTracking";
@@ -7,7 +8,7 @@ import { VideoPreview } from "./preview/VideoPreview";
 import { TranscriptionSection } from "./transcription/TranscriptionSection";
 import { useMediaStream } from "./media/useMediaStream";
 import { useRecording } from "./media/useRecording";
-import { analyzeResponse } from "@/utils/interviewAnalysis";
+import { analyzeResponse, InterviewAnalysis } from "@/utils/interviewAnalysis";
 
 interface VideoSectionProps {
   transcribedText: string;
