@@ -5,6 +5,7 @@ import { RecordingControls } from "./controls/RecordingControls";
 import { VideoPreview } from "./preview/VideoPreview";
 import { TranscriptionSection } from "./transcription/TranscriptionSection";
 import { setupHeadTracking } from "@/utils/headTracking";
+import { interviewQuestions } from "@/constants/interviewQuestions";
 
 interface VideoSectionProps {
   transcribedText: string;
@@ -270,25 +271,16 @@ export const VideoSection = ({
   const simulateTranscription = () => {
     setIsTranscribing(true);
     
+    // Simulate a delay for transcription
     setTimeout(() => {
-      const sampleInterviews = [
-        {
-          interviewer: "Can you tell me about your experience with React?",
-          candidate: "Yes, I've been working with React for about 3 years now. I've built several projects including an e-commerce site and a dashboard application. I really enjoy using hooks and functional components."
-        },
-        {
-          interviewer: "Describe a challenging project you worked on recently.",
-          candidate: "I worked on a real-time analytics dashboard that had performance issues. We had to optimize the rendering and implement virtualization to handle large datasets smoothly."
-        },
-        {
-          interviewer: "How do you handle conflicts in a team?",
-          candidate: "I believe in addressing conflicts directly but respectfully. In my last team, we had disagreements about the architecture, so I organized a meeting where everyone could share their concerns and we reached a compromise."
-        }
+      const currentQuestion = interviewQuestions[Math.floor(Math.random() * 3)];
+      const sampleResponses = [
+        "I have been working as a software developer for the past three years, primarily focusing on web development. I've gained extensive experience with React and Node.js, and I've led several successful projects.",
+        "In my current role, I collaborated with a team of five developers to build a scalable e-commerce platform. We faced some initial challenges with performance, but I implemented code splitting and lazy loading to improve load times.",
+        "My approach to problem-solving involves breaking down complex issues into smaller, manageable tasks. For example, in my last project, we needed to optimize database queries that were causing slow response times."
       ];
       
-      const randomSample = sampleInterviews[Math.floor(Math.random() * sampleInterviews.length)];
-      
-      const simulatedText = `Interviewer: ${randomSample.interviewer}\nCandidate: ${randomSample.candidate}`;
+      const simulatedText = `Interviewer: ${currentQuestion}\nCandidate: ${sampleResponses[Math.floor(Math.random() * sampleResponses.length)]}`;
       
       setTranscribedText(simulatedText);
       setIsTranscribing(false);

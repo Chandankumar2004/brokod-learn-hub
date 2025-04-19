@@ -36,19 +36,11 @@ export const TranscriptionSection = ({
   };
 
   // Split transcribed text into interviewer and candidate parts
-  const interviewerText = transcribedText.includes('Candidate:') 
-    ? transcribedText.split('Candidate:')[0].trim() 
-    : transcribedText;
-    
-  const candidateText = transcribedText.includes('Candidate:') 
-    ? transcribedText.split('Candidate:')[1] || '' 
-    : '';
+  const [interviewerText, candidateText] = parseTranscription(transcribedText);
 
   // Handle text change to maintain proper format
   const handleCandidateTextChange = (newCandidateText: string) => {
-    const updatedText = interviewerText 
-      ? `${interviewerText}\nCandidate:${newCandidateText}`
-      : `Candidate:${newCandidateText}`;
+    const updatedText = `Interviewer: ${interviewerText}\nCandidate: ${newCandidateText}`;
     onTranscribedTextChange(updatedText);
   };
 
@@ -88,7 +80,7 @@ export const TranscriptionSection = ({
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <p className="font-semibold text-sm text-green-700 dark:text-green-300 mb-2">Candidate:</p>
                 <Textarea 
-                  className="w-full min-h-[120px] mb-2 font-medium bg-white/50 dark:bg-black/10" 
+                  className="w-full min-h-[120px] mb-2 bg-white/50 dark:bg-black/10" 
                   placeholder="Your spoken answer will appear here after recording..."
                   value={candidateText}
                   onChange={(e) => handleCandidateTextChange(e.target.value)}
@@ -128,4 +120,21 @@ export const TranscriptionSection = ({
       )}
     </div>
   );
+};
+
+// Helper function to parse transcription text
+const parseTranscription = (text: string): [string, string] => {
+  const parts = text.split('\n');
+  let interviewerText = "";
+  let candidateText = "";
+  
+  parts.forEach(part => {
+    if (part.startsWith("Interviewer:")) {
+      interviewerText = part.replace("Interviewer:", "").trim();
+    } else if (part.startsWith("Candidate:")) {
+      candidateText = part.replace("Candidate:", "").trim();
+    }
+  });
+  
+  return [interviewerText, candidateText];
 };
