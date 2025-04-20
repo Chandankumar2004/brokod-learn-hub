@@ -1,3 +1,4 @@
+
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { interviewQuestions } from '@/constants/interviewQuestions';
@@ -64,7 +65,15 @@ export const useRecording = ({
         
         // Here you would typically send the audio data to a speech-to-text service
         // For demo purposes, we're using Web Speech API
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (!SpeechRecognition) {
+          toast.error('Speech recognition is not supported in this browser');
+          setIsTranscribing(false);
+          return;
+        }
+        
+        const recognition = new SpeechRecognition();
         recognition.lang = 'en-US';
         recognition.continuous = true;
         
