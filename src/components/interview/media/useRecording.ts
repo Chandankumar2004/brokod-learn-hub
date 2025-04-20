@@ -1,4 +1,3 @@
-
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { interviewQuestions } from '@/constants/interviewQuestions';
@@ -55,49 +54,71 @@ export const useRecording = ({
 
   const processTranscription = async (audioBlob: Blob) => {
     try {
-      // Convert blob to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(audioBlob);
+      setIsTranscribing(true);
       
-      reader.onloadend = async () => {
-        const base64Audio = reader.result as string;
-        const audioData = base64Audio.split(',')[1]; // Remove data URL prefix
-        
-        // Here you would typically send the audio data to a speech-to-text service
-        // For demo purposes, we're using Web Speech API
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        
-        if (!SpeechRecognition) {
-          toast.error('Speech recognition is not supported in this browser');
-          setIsTranscribing(false);
-          return;
-        }
-        
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'en-US';
-        recognition.continuous = true;
-        
-        recognition.onresult = (event) => {
-          const transcript = Array.from(event.results)
-            .map(result => result[0].transcript)
-            .join(' ');
-            
-          const currentQuestion = interviewQuestions[0];
-          const transcription = `Interviewer: ${currentQuestion}\nCandidate: ${transcript}`;
+      // Create an audio URL for storing the recording
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Initialize speech recognition
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      
+      if (!SpeechRecognition) {
+        toast.error('Speech recognition is not supported in this browser');
+        setIsTranscribing(false);
+        return;
+      }
+      
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.continuous = true;
+      recognition.interimResults = false;
+      
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0].transcript)
+          .join(' ');
           
-          onTranscriptionComplete(transcription);
-          setIsTranscribing(false);
-        };
-
-        recognition.onerror = (event) => {
-          console.error('Speech recognition error:', event.error);
-          toast.error('Error transcribing speech');
-          setIsTranscribing(false);
-        };
-
-        // Start recognition with the recorded audio
-        recognition.start();
+        const currentQuestion = interviewQuestions[0];
+        const transcription = `Interviewer: ${currentQuestion}\nCandidate: ${transcript}`;
+        
+        // Store transcription and complete
+        onTranscriptionComplete(transcription);
+        setIsTranscribing(false);
+        
+        // Clean up audio URL
+        URL.revokeObjectURL(audioUrl);
       };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        toast.error('Error transcribing speech');
+        setIsTranscribing(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      recognition.onend = () => {
+        if (!recognition.onresult) {
+          toast.error('No speech was detected');
+          setIsTranscribing(false);
+          URL.revokeObjectURL(audioUrl);
+        }
+      };
+
+      // Create an audio element to play the recording for transcription
+      const audio = new Audio(audioUrl);
+      audio.addEventListener('ended', () => {
+        recognition.stop();
+      });
+
+      // Start recognition and play the audio
+      recognition.start();
+      audio.play().catch(error => {
+        console.error('Error playing audio:', error);
+        toast.error('Error processing audio');
+        setIsTranscribing(false);
+        URL.revokeObjectURL(audioUrl);
+      });
+
     } catch (error) {
       console.error('Transcription error:', error);
       toast.error('Failed to transcribe audio');
