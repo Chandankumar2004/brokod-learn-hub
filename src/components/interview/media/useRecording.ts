@@ -40,19 +40,17 @@ export const useRecording = ({
     setIsTranscribing(true);
     
     setTimeout(() => {
-      const currentQuestion = interviewQuestions[Math.floor(Math.random() * 3)];
-      const sampleResponses = [
-        "I have been working as a software developer for the past three years, primarily focusing on web development. I've gained extensive experience with React and Node.js, and I've led several successful projects.",
-        "In my current role, I collaborated with a team of five developers to build a scalable e-commerce platform. We faced some initial challenges with performance, but I implemented code splitting and lazy loading to improve load times.",
-        "My approach to problem-solving involves breaking down complex issues into smaller, manageable tasks. For example, in my last project, we needed to optimize database queries that were causing slow response times."
-      ];
+      const currentQuestion = interviewQuestions[0]; // Current question from the interview
+      const simulatedTranscription = `Interviewer: ${currentQuestion}\nCandidate: `;
       
-      const simulatedText = `Interviewer: ${currentQuestion}\nCandidate: ${sampleResponses[Math.floor(Math.random() * sampleResponses.length)]}`;
-      
-      onTranscriptionComplete(simulatedText);
+      onTranscriptionComplete(simulatedTranscription);
       setIsTranscribing(false);
-      toast.success("Speech transcribed successfully");
-    }, 2000);
+    }, 1000);
+  };
+
+  const transcribeAnswer = (recordedText: string) => {
+    const simulatedTranscription = `Interviewer: ${interviewQuestions[0]}\nCandidate: ${recordedText}`;
+    onTranscriptionComplete(simulatedTranscription);
   };
 
   const toggleRecording = () => {
@@ -72,10 +70,18 @@ export const useRecording = ({
         };
 
         mediaRecorder.onstop = () => {
+          const recordedBlob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            // Here you would typically send this to a transcription service
+            // For now, we'll simulate a transcription
+            transcribeAnswer("I have worked on multiple web development projects using React and Node.js, focusing on creating scalable and efficient applications.");
+          };
+          reader.readAsDataURL(recordedBlob);
+
           recordedChunksRef.current = [];
           setRecordingTime(0);
           stopTimer();
-          simulateTranscription();
         };
 
         mediaRecorder.start();

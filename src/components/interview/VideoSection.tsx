@@ -8,6 +8,7 @@ import { TranscriptionSection } from "./transcription/TranscriptionSection";
 import { useMediaStream } from "./media/useMediaStream";
 import { useRecording } from "./media/useRecording";
 import { analyzeResponse, InterviewAnalysis } from "@/utils/interviewAnalysis";
+import { interviewQuestions } from "@/constants/interviewQuestions";
 
 interface VideoSectionProps {
   transcribedText: string;
@@ -68,8 +69,13 @@ export const VideoSection = ({
 
   const handleTranscribedTextChange = (text: string) => {
     setTranscribedText(text);
-    if (text) {
-      const analysisResult: InterviewAnalysis = analyzeResponse(text);
+    const [, candidateText] = text.split('Candidate:');
+    if (candidateText && candidateText.trim()) {
+      const currentQuestion = interviewQuestions[0]; // Current question
+      const analysisResult: InterviewAnalysis = analyzeResponse(
+        candidateText.trim(), 
+        currentQuestion
+      );
       setAnalysis(analysisResult);
     }
   };
