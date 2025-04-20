@@ -52,21 +52,48 @@ export const useRecording = ({
     onTranscriptionComplete(simulatedTranscription);
   };
 
-  const processTranscription = (audioBlob: Blob) => {
-    // Simulating real-time transcription with sample text for demo
-    // In a real application, you would send the audio to a speech-to-text service
-    const exampleResponses = [
-      "I have extensive experience in developing web applications using React and Node.js.",
-      "During my previous role, I successfully led a team of five developers.",
-      "I believe my problem-solving skills and collaborative approach make me a strong candidate."
-    ];
-    
-    const randomResponse = exampleResponses[Math.floor(Math.random() * exampleResponses.length)];
-    const currentQuestion = interviewQuestions[0];
-    const transcription = `Interviewer: ${currentQuestion}\nCandidate: ${randomResponse}`;
-    
-    onTranscriptionComplete(transcription);
-    setIsTranscribing(false);
+  const processTranscription = async (audioBlob: Blob) => {
+    try {
+      // Convert blob to base64
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+      
+      reader.onloadend = async () => {
+        const base64Audio = reader.result as string;
+        const audioData = base64Audio.split(',')[1]; // Remove data URL prefix
+        
+        // Here you would typically send the audio data to a speech-to-text service
+        // For demo purposes, we're using Web Speech API
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+        recognition.continuous = true;
+        
+        recognition.onresult = (event) => {
+          const transcript = Array.from(event.results)
+            .map(result => result[0].transcript)
+            .join(' ');
+            
+          const currentQuestion = interviewQuestions[0];
+          const transcription = `Interviewer: ${currentQuestion}\nCandidate: ${transcript}`;
+          
+          onTranscriptionComplete(transcription);
+          setIsTranscribing(false);
+        };
+
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          toast.error('Error transcribing speech');
+          setIsTranscribing(false);
+        };
+
+        // Start recognition with the recorded audio
+        recognition.start();
+      };
+    } catch (error) {
+      console.error('Transcription error:', error);
+      toast.error('Failed to transcribe audio');
+      setIsTranscribing(false);
+    }
   };
 
   const toggleRecording = () => {
