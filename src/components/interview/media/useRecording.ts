@@ -1,4 +1,3 @@
-
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { interviewQuestions } from '@/constants/interviewQuestions';
@@ -53,6 +52,23 @@ export const useRecording = ({
     onTranscriptionComplete(simulatedTranscription);
   };
 
+  const processTranscription = (audioBlob: Blob) => {
+    // Simulating real-time transcription with sample text for demo
+    // In a real application, you would send the audio to a speech-to-text service
+    const exampleResponses = [
+      "I have extensive experience in developing web applications using React and Node.js.",
+      "During my previous role, I successfully led a team of five developers.",
+      "I believe my problem-solving skills and collaborative approach make me a strong candidate."
+    ];
+    
+    const randomResponse = exampleResponses[Math.floor(Math.random() * exampleResponses.length)];
+    const currentQuestion = interviewQuestions[0];
+    const transcription = `Interviewer: ${currentQuestion}\nCandidate: ${randomResponse}`;
+    
+    onTranscriptionComplete(transcription);
+    setIsTranscribing(false);
+  };
+
   const toggleRecording = () => {
     if (!streamActive) {
       toast.error("Please enable camera or microphone before recording");
@@ -62,6 +78,7 @@ export const useRecording = ({
     if (!isRecording) {
       if (mediaStreamRef.current) {
         const mediaRecorder = new MediaRecorder(mediaStreamRef.current);
+        recordedChunksRef.current = [];
         
         mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
@@ -71,14 +88,8 @@ export const useRecording = ({
 
         mediaRecorder.onstop = () => {
           const recordedBlob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            // Here you would typically send this to a transcription service
-            // For now, we'll simulate a transcription
-            transcribeAnswer("I have worked on multiple web development projects using React and Node.js, focusing on creating scalable and efficient applications.");
-          };
-          reader.readAsDataURL(recordedBlob);
-
+          setIsTranscribing(true);
+          processTranscription(recordedBlob);
           recordedChunksRef.current = [];
           setRecordingTime(0);
           stopTimer();
@@ -96,7 +107,7 @@ export const useRecording = ({
         mediaRecorderRef.current.stop();
         setIsRecording(false);
         setIsPaused(false);
-        toast.info("Recording ended");
+        toast.info("Recording ended, transcribing your answer...");
       }
     }
   };
