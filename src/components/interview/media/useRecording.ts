@@ -1,22 +1,31 @@
+
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { interviewQuestions } from '@/constants/interviewQuestions';
+import { analyzeResponse, InterviewAnalysis } from '@/utils/interviewAnalysis';
+import { translateText } from '@/utils/translation';
 
 interface UseRecordingProps {
   streamActive: boolean;
   mediaStreamRef: React.RefObject<MediaStream>;
   onTranscriptionComplete: (text: string) => void;
+  onAnalysisComplete?: (analysis: InterviewAnalysis) => void;
 }
 
 export const useRecording = ({ 
   streamActive, 
   mediaStreamRef, 
-  onTranscriptionComplete 
+  onTranscriptionComplete,
+  onAnalysisComplete
 }: UseRecordingProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedText, setTranslatedText] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("english");
+  const [fillerWordCount, setFillerWordCount] = useState<number>(0);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
@@ -35,21 +44,10 @@ export const useRecording = ({
     }
   };
 
-  const simulateTranscription = () => {
-    setIsTranscribing(true);
-    
-    setTimeout(() => {
-      const currentQuestion = interviewQuestions[0]; // Current question from the interview
-      const simulatedTranscription = `Interviewer: ${currentQuestion}\nCandidate: `;
-      
-      onTranscriptionComplete(simulatedTranscription);
-      setIsTranscribing(false);
-    }, 1000);
-  };
-
-  const transcribeAnswer = (recordedText: string) => {
-    const simulatedTranscription = `Interviewer: ${interviewQuestions[0]}\nCandidate: ${recordedText}`;
-    onTranscriptionComplete(simulatedTranscription);
+  const countFillerWords = (text: string): number => {
+    const fillerWords = ['um', 'uh', 'like', 'actually', 'basically', 'you know'];
+    const words = text.toLowerCase().split(/\s+/);
+    return words.filter(word => fillerWords.includes(word)).length;
   };
 
   const processTranscription = async (audioBlob: Blob) => {
@@ -73,7 +71,7 @@ export const useRecording = ({
       recognition.continuous = true;
       recognition.interimResults = false;
       
-      recognition.onresult = (event) => {
+      recognition.onresult = async (event) => {
         const transcript = Array.from(event.results)
           .map(result => result[0].transcript)
           .join(' ');
@@ -81,8 +79,37 @@ export const useRecording = ({
         const currentQuestion = interviewQuestions[0];
         const transcription = `Interviewer: ${currentQuestion}\nCandidate: ${transcript}`;
         
+        // Count filler words
+        const fillerCount = countFillerWords(transcript);
+        setFillerWordCount(fillerCount);
+        
         // Store transcription and complete
         onTranscriptionComplete(transcription);
+        
+        // Perform translation if needed
+        if (selectedLanguage.toLowerCase() !== 'english') {
+          setIsTranslating(true);
+          try {
+            const translated = await translateText(transcript, selectedLanguage);
+            setTranslatedText(translated);
+          } catch (error) {
+            console.error('Translation error:', error);
+            toast.error('Error translating response');
+          } finally {
+            setIsTranslating(false);
+          }
+        }
+        
+        // Perform analysis
+        const analysis = analyzeResponse(transcript, currentQuestion);
+        if (onAnalysisComplete) {
+          onAnalysisComplete({
+            ...analysis,
+            fillerWordsCount: fillerCount,
+            translatedText: translatedText
+          });
+        }
+        
         setIsTranscribing(false);
         
         // Clean up audio URL
@@ -185,13 +212,22 @@ export const useRecording = ({
     }
   };
 
+  const setTranslationLanguage = (language: string) => {
+    setSelectedLanguage(language);
+  };
+
   return {
     isRecording,
     isPaused,
     recordingTime,
     isTranscribing,
+    isTranslating,
+    translatedText,
+    fillerWordCount,
+    selectedLanguage,
     toggleRecording,
     togglePause,
-    stopTimer
+    stopTimer,
+    setTranslationLanguage
   };
 };

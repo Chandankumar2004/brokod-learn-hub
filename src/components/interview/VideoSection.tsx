@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { setupHeadTracking } from "@/utils/headTracking";
@@ -34,22 +35,32 @@ export const VideoSection = ({
     stopAllTracks
   } = useMediaStream();
 
+  const [analysis, setAnalysis] = useState<InterviewAnalysis | null>(null);
+  const [showAnalysis, setShowAnalysis] = useState(true);
+  const [selectedLanguage, setSelectedLanguage] = useState("english");
+
+  const handleAnalysisComplete = (newAnalysis: InterviewAnalysis) => {
+    setAnalysis(newAnalysis);
+  };
+
   const {
     isRecording,
     isPaused,
     recordingTime,
     isTranscribing,
+    isTranslating,
+    translatedText,
+    fillerWordCount,
     toggleRecording,
     togglePause,
-    stopTimer
+    stopTimer,
+    setTranslationLanguage
   } = useRecording({
     streamActive,
     mediaStreamRef,
-    onTranscriptionComplete: setTranscribedText
+    onTranscriptionComplete: setTranscribedText,
+    onAnalysisComplete: handleAnalysisComplete
   });
-
-  const [analysis, setAnalysis] = useState<InterviewAnalysis | null>(null);
-  const [showAnalysis, setShowAnalysis] = useState(true);
 
   useEffect(() => {
     return () => {
@@ -78,6 +89,11 @@ export const VideoSection = ({
       );
       setAnalysis(analysisResult);
     }
+  };
+
+  const handleLanguageChange = (language: string) => {
+    setSelectedLanguage(language);
+    setTranslationLanguage(language);
   };
 
   return (
@@ -115,6 +131,11 @@ export const VideoSection = ({
         analysis={analysis}
         showAnalysis={showAnalysis}
         onToggleAnalysis={() => setShowAnalysis(!showAnalysis)}
+        isTranslating={isTranslating}
+        translatedText={translatedText}
+        onLanguageChange={handleLanguageChange}
+        selectedLanguage={selectedLanguage}
+        fillerWordCount={fillerWordCount}
       />
     </div>
   );
