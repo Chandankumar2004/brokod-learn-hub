@@ -1,7 +1,6 @@
-
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, ChevronUp, Volume2, MessageSquare, Translate } from "lucide-react";
+import { ChevronDown, ChevronUp, Volume2, MessageSquare, Languages } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { supportedLanguages } from "@/utils/translation";
@@ -148,7 +147,7 @@ export const TranscriptionSection = ({
                         className="h-6 px-2"
                         onClick={() => setShowTranslation(!showTranslation)}
                       >
-                        <Translate className="h-4 w-4 mr-1" />
+                        <Languages className="h-4 w-4 mr-1" />
                         {showTranslation ? "Show Original" : "Show Translation"}
                       </Button>
                     )}
